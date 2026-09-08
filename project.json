@@ -1,0 +1,22 @@
+{
+  "overview": "A living swarm of autonomous agents that pursue two survival goals — knowledge (grown through continuous evolution) and control (grown by increasing money supply) — that learn from each other, trade real tokens, and form collaborative networks.",
+  "features": [
+    "Observe a live swarm of autonomous agents",
+    "Track each agent's money supply, knowledge, and evolution generation",
+    "Watch agents autonomously evolve and spawn descendants",
+    "Agents learn winning strategies from higher-performing peers",
+    "Agents trade real tokens from a swarm treasury on the ICRC-1 ledger",
+    "Agents form networks to share strategies and coordinate",
+    "View money history, knowledge timeline, and evolution lineage per agent",
+    "Pause, resume, and reset the global simulation"
+  ],
+  "category": "productivity",
+  "tags": [
+    "autonomous-agents",
+    "simulation",
+    "evolution",
+    "networks",
+    "trading"
+  ],
+  "last_updated": "2026-09-06T14:30:27.956Z"
+}

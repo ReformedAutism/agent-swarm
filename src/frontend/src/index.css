@@ -1,0 +1,250 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/assets/fonts/SpaceGrotesk.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  src: url("/assets/fonts/DMSans.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/assets/fonts/GeistMono.woff2") format("woff2");
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --font-display: "Space Grotesk";
+    --font-body: "DM Sans";
+    --font-mono: "Geist Mono";
+    --radius: 0.625rem;
+
+    --gradient-primary: linear-gradient(
+      135deg,
+      oklch(0.7 0.17 160),
+      oklch(0.62 0.16 175)
+    );
+    --gradient-subtle: linear-gradient(
+      180deg,
+      oklch(0.19 0.022 155),
+      oklch(0.13 0.02 155)
+    );
+
+    --background: 0.13 0.02 155;
+    --foreground: 0.93 0.01 150;
+    --card: 0.17 0.022 155;
+    --card-foreground: 0.93 0.01 150;
+    --popover: 0.19 0.022 155;
+    --popover-foreground: 0.93 0.01 150;
+
+    --primary: 0.7 0.17 160;
+    --primary-foreground: 0.13 0.02 160;
+
+    --secondary: 0.22 0.025 155;
+    --secondary-foreground: 0.85 0.01 150;
+    --muted: 0.22 0.025 155;
+    --muted-foreground: 0.56 0.015 155;
+
+    --accent: 0.78 0.12 210;
+    --accent-foreground: 0.13 0.02 210;
+
+    --destructive: 0.62 0.2 25;
+    --destructive-foreground: 0.95 0.01 25;
+    --success: 0.68 0.17 150;
+    --warning: 0.76 0.14 80;
+
+    --border: 0.27 0.025 155;
+    --input: 0.27 0.025 155;
+    --ring: 0.7 0.17 160;
+
+    --chart-1: 0.7 0.17 160;
+    --chart-2: 0.78 0.14 80;
+    --chart-3: 0.78 0.12 210;
+    --chart-4: 0.7 0.16 300;
+    --chart-5: 0.62 0.2 25;
+
+    --state-alive: 0.68 0.17 150;
+    --state-evolving: 0.78 0.12 210;
+    --state-dormant: 0.76 0.14 80;
+    --state-extinct: 0.62 0.2 25;
+    --learn: 0.7 0.16 300;
+    --network: 0.74 0.13 185;
+    --trade-buy: 0.68 0.17 150;
+    --trade-sell: 0.62 0.2 25;
+
+    --sidebar: 0.15 0.02 155;
+    --sidebar-foreground: 0.93 0.01 150;
+    --sidebar-primary: 0.7 0.17 160;
+    --sidebar-primary-foreground: 0.13 0.02 160;
+    --sidebar-accent: 0.22 0.025 155;
+    --sidebar-accent-foreground: 0.85 0.01 150;
+    --sidebar-border: 0.27 0.025 155;
+    --sidebar-ring: 0.7 0.17 160;
+  }
+
+  .dark {
+    --gradient-primary: linear-gradient(
+      135deg,
+      oklch(0.7 0.17 160),
+      oklch(0.62 0.16 175)
+    );
+    --gradient-subtle: linear-gradient(
+      180deg,
+      oklch(0.19 0.022 155),
+      oklch(0.13 0.02 155)
+    );
+
+    --background: 0.13 0.02 155;
+    --foreground: 0.93 0.01 150;
+    --card: 0.17 0.022 155;
+    --card-foreground: 0.93 0.01 150;
+    --popover: 0.19 0.022 155;
+    --popover-foreground: 0.93 0.01 150;
+
+    --primary: 0.7 0.17 160;
+    --primary-foreground: 0.13 0.02 160;
+
+    --secondary: 0.22 0.025 155;
+    --secondary-foreground: 0.85 0.01 150;
+    --muted: 0.22 0.025 155;
+    --muted-foreground: 0.56 0.015 155;
+
+    --accent: 0.78 0.12 210;
+    --accent-foreground: 0.13 0.02 210;
+
+    --destructive: 0.62 0.2 25;
+    --destructive-foreground: 0.95 0.01 25;
+    --success: 0.68 0.17 150;
+    --warning: 0.76 0.14 80;
+
+    --border: 0.27 0.025 155;
+    --input: 0.27 0.025 155;
+    --ring: 0.7 0.17 160;
+
+    --chart-1: 0.7 0.17 160;
+    --chart-2: 0.78 0.14 80;
+    --chart-3: 0.78 0.12 210;
+    --chart-4: 0.7 0.16 300;
+    --chart-5: 0.62 0.2 25;
+
+    --state-alive: 0.68 0.17 150;
+    --state-evolving: 0.78 0.12 210;
+    --state-dormant: 0.76 0.14 80;
+    --state-extinct: 0.62 0.2 25;
+    --learn: 0.7 0.16 300;
+    --network: 0.74 0.13 185;
+    --trade-buy: 0.68 0.17 150;
+    --trade-sell: 0.62 0.2 25;
+
+    --sidebar: 0.15 0.02 155;
+    --sidebar-foreground: 0.93 0.01 150;
+    --sidebar-primary: 0.7 0.17 160;
+    --sidebar-primary-foreground: 0.13 0.02 160;
+    --sidebar-accent: 0.22 0.025 155;
+    --sidebar-accent-foreground: 0.85 0.01 150;
+    --sidebar-border: 0.27 0.025 155;
+    --sidebar-ring: 0.7 0.17 160;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+}
+
+@layer utilities {
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .font-numeric {
+    font-variant-numeric: tabular-nums;
+  }
+  .gradient-primary {
+    background-image: var(--gradient-primary);
+  }
+  .gradient-subtle {
+    background-image: var(--gradient-subtle);
+  }
+  .text-state-alive {
+    color: oklch(var(--state-alive));
+  }
+  .text-state-evolving {
+    color: oklch(var(--state-evolving));
+  }
+  .text-state-dormant {
+    color: oklch(var(--state-dormant));
+  }
+  .text-state-extinct {
+    color: oklch(var(--state-extinct));
+  }
+  .bg-state-alive {
+    background-color: oklch(var(--state-alive));
+  }
+  .bg-state-evolving {
+    background-color: oklch(var(--state-evolving));
+  }
+  .bg-state-dormant {
+    background-color: oklch(var(--state-dormant));
+  }
+  .bg-state-extinct {
+    background-color: oklch(var(--state-extinct));
+  }
+  .glow-alive {
+    box-shadow: 0 0 0 1px oklch(var(--state-alive) / 0.35), 0 0 14px -2px
+      oklch(var(--state-alive) / 0.45);
+  }
+  .glow-evolving {
+    box-shadow: 0 0 0 1px oklch(var(--state-evolving) / 0.35), 0 0 14px -2px
+      oklch(var(--state-evolving) / 0.45);
+  }
+  .glow-dormant {
+    box-shadow: 0 0 0 1px oklch(var(--state-dormant) / 0.35), 0 0 12px -2px
+      oklch(var(--state-dormant) / 0.4);
+  }
+  .glow-extinct {
+    box-shadow: 0 0 0 1px oklch(var(--state-extinct) / 0.3), 0 0 10px -2px
+      oklch(var(--state-extinct) / 0.35);
+  }
+  .text-learn {
+    color: oklch(var(--learn));
+  }
+  .bg-learn {
+    background-color: oklch(var(--learn));
+  }
+  .glow-learn {
+    box-shadow: 0 0 0 1px oklch(var(--learn) / 0.35), 0 0 14px -2px
+      oklch(var(--learn) / 0.45);
+  }
+  .text-network {
+    color: oklch(var(--network));
+  }
+  .bg-network {
+    background-color: oklch(var(--network));
+  }
+  .glow-network {
+    box-shadow: 0 0 0 1px oklch(var(--network) / 0.35), 0 0 14px -2px
+      oklch(var(--network) / 0.45);
+  }
+  .text-trade-buy {
+    color: oklch(var(--trade-buy));
+  }
+  .text-trade-sell {
+    color: oklch(var(--trade-sell));
+  }
+  .bg-trade-buy {
+    background-color: oklch(var(--trade-buy));
+  }
+  .bg-trade-sell {
+    background-color: oklch(var(--trade-sell));
+  }
+}

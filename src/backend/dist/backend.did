@@ -1,0 +1,271 @@
+type Value = 
+ variant {
+   "bool": bool;
+   float: float64;
+   "int": int;
+   "nat": nat;
+   "null";
+   "text": text;
+ };
+type UserRole = 
+ variant {
+   admin;
+   guest;
+   user;
+ };
+type UserProfile = 
+ record {
+   currency: text;
+   onboardingCompleted: bool;
+   startingBalance: float64;
+ };
+type UserId = principal;
+type TreasuryState = 
+ record {
+   balances: vec TokenBalance;
+   owner: UserId;
+ };
+type TransactionType = 
+ variant {
+   expense;
+   income;
+ };
+type TransactionInput = 
+ record {
+   amount: float64;
+   category: text;
+   date: Timestamp;
+   kind: TransactionType;
+   note: text;
+ };
+type Transaction = 
+ record {
+   amount: float64;
+   category: text;
+   date: Timestamp;
+   id: nat;
+   kind: TransactionType;
+   note: text;
+   owner: UserId;
+ };
+type Trait = 
+ record {
+   level: nat;
+   name: text;
+ };
+type TradeRecord = 
+ record {
+   agentId: nat;
+   amount: float64;
+   at: Timestamp;
+   blockIndex: nat;
+   direction: TradeDirection;
+   id: nat;
+   price: float64;
+   token: text;
+ };
+type TradeDirection = 
+ variant {
+   buy;
+   sell;
+ };
+type TokenBalance = 
+ record {
+   balance: float64;
+   token: text;
+ };
+type Timestamp = int;
+type SwarmStats = 
+ record {
+   activeAgents: nat;
+   generationsEvolved: nat;
+   tick: nat;
+   totalKnowledge: float64;
+   totalMoney: float64;
+ };
+type Strategy = 
+ record {
+   description: text;
+   name: text;
+ };
+type SimulationControl = 
+ variant {
+   pause;
+   resume;
+ };
+type SavingsGoalInput = 
+ record {
+   name: text;
+   targetAmount: float64;
+   targetDate: Timestamp;
+ };
+type SavingsGoal = 
+ record {
+   contributions: vec Contribution;
+   id: nat;
+   name: text;
+   owner: UserId;
+   targetAmount: float64;
+   targetDate: Timestamp;
+ };
+type Result__1 = 
+ variant {
+   err: Error;
+   ok;
+ };
+type Result = 
+ record {
+   hasMore: bool;
+   rows: vec vec Cell;
+ };
+type Network = 
+ record {
+   collectivePerformance: float64;
+   id: nat;
+   memberAgentIds: vec nat;
+   name: text;
+   sharedStrategyPool: vec Strategy;
+ };
+type MoneySnapshot = 
+ record {
+   at: Timestamp;
+   money: float64;
+   tick: nat;
+ };
+type Lineage = 
+ record {
+   ancestors: vec nat;
+   descendants: vec nat;
+ };
+type LearningRecord = 
+ record {
+   adoptedStrategy: Strategy;
+   agentId: nat;
+   at: Timestamp;
+   id: nat;
+   integrationWeight: float64;
+   sourcePeerId: nat;
+ };
+type KnowledgeSnapshot = 
+ record {
+   at: Timestamp;
+   knowledge: float64;
+   tick: nat;
+ };
+type Error = 
+ variant {
+   AmbiguousAttribute: record {
+                         field: text;
+                         sources: vec text;
+                       };
+   FrontendOriginMismatch: record {
+                             expected: vec text;
+                             got: text;
+                           };
+   FrontendOriginsNotConfigured;
+   MalformedCandid;
+   MissingField: text;
+   MixedSsoSources: record {
+                      otherKeys: vec text;
+                      ssoKeys: vec text;
+                    };
+   NoAttributes;
+   Stale: record {ageNs: nat;};
+   UnknownNonce;
+   UntrustedSsoSource: record {domain: text;};
+ };
+type Contribution = 
+ record {
+   amount: float64;
+   date: Timestamp;
+ };
+type Cell = 
+ record {
+   name: text;
+   value: Value;
+ };
+type BudgetInput = 
+ record {
+   category: text;
+   monthlyLimit: float64;
+ };
+type Budget = 
+ record {
+   category: text;
+   id: nat;
+   monthlyLimit: float64;
+   owner: UserId;
+ };
+type AgentStatus = 
+ variant {
+   alive;
+   dormant;
+   evolving;
+   extinct;
+ };
+type Agent = 
+ record {
+   generation: nat;
+   id: nat;
+   knowledge: float64;
+   knowledgeTimeline: vec KnowledgeSnapshot;
+   lineage: Lineage;
+   money: float64;
+   moneyHistory: vec MoneySnapshot;
+   name: text;
+   status: AgentStatus;
+   strategy: Strategy;
+   traits: vec Trait;
+ };
+service : {
+  _initialize_access_control: () -> ();
+  _internet_identity_sign_in_finish: () -> (Result__1);
+  _internet_identity_sign_in_start: () -> (blob);
+  addBudget: (input: BudgetInput) -> (nat);
+  addContribution: (id: nat, amount: float64) -> ();
+  addSavingsGoal: (input: SavingsGoalInput) -> (nat);
+  addTransaction: (input: TransactionInput) -> (nat);
+  advanceTick: () -> ();
+  assignCallerUserRole: (user: principal, role: UserRole) -> ();
+  createNetwork: (name: text) -> (nat);
+  deleteBudget: (id: nat) -> ();
+  deleteSavingsGoal: (id: nat) -> ();
+  deleteTransaction: (id: nat) -> ();
+  execute: (qJson: text) -> (Result) query;
+  executeTrade: (agentId: nat, token: text, amount: float64, price: float64,
+   direction: TradeDirection) -> ();
+  fundTreasury: (token: text, amount: float64) -> ();
+  getAgent: (id: nat) -> (opt Agent) query;
+  getAgentLearning: (agentId: nat) -> (vec LearningRecord) query;
+  getAgentTrades: (agentId: nat) -> (vec TradeRecord) query;
+  getApiDoc: () -> (text) query;
+  getBudget: (id: nat) -> (opt Budget) query;
+  getCallerProfile: () -> (opt UserProfile) query;
+  getCallerUserRole: () -> (UserRole) query;
+  getNetwork: (networkId: nat) -> (opt Network) query;
+  getSavingsGoal: (id: nat) -> (opt SavingsGoal) query;
+  getSwarmStats: () -> (SwarmStats) query;
+  getTransaction: (id: nat) -> (opt Transaction) query;
+  getTreasury: () -> (TreasuryState) query;
+  isCallerAdmin: () -> (bool) query;
+  joinNetwork: (networkId: nat, agentId: nat) -> ();
+  leaveNetwork: (networkId: nat, agentId: nat) -> ();
+  listAgents: () -> (vec Agent) query;
+  listBudgets: () -> (vec Budget) query;
+  listLearningRecords: () -> (vec LearningRecord) query;
+  listNetworks: () -> (vec Network) query;
+  listSavingsGoals: () -> (vec SavingsGoal) query;
+  listTrades: () -> (vec TradeRecord) query;
+  listTransactions: () -> (vec Transaction) query;
+  observeAndLearn: (agentId: nat, sourcePeerId: nat, adoptedStrategy:
+   Strategy, integrationWeight: float64) -> ();
+  resetSwarm: () -> ();
+  saveCallerProfile: (profile: UserProfile) -> ();
+  schema: () -> (text) query;
+  setSimulationControl: (control: SimulationControl) -> ();
+  spotlightAgent: (id: nat) -> ();
+  updateBudget: (id: nat, input: BudgetInput) -> ();
+  updateSavingsGoal: (id: nat, input: SavingsGoalInput) -> ();
+  updateTransaction: (id: nat, input: TransactionInput) -> ();
+  withdrawTreasury: (token: text, amount: float64) -> ();
+}
