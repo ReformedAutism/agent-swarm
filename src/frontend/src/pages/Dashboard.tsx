@@ -30,8 +30,10 @@ import {
 } from "@/components/ui/table";
 import {
   useAgents,
+  useCoreMetrics,
   useLearningRecords,
   useNetworks,
+  useOrchestrationLog,
   useSimulationState,
   useSwarmStats,
   useTrades,
@@ -54,14 +56,20 @@ import type {
   AgentStatus,
   LearningRecord,
   Network,
+  OrchestrationKind,
+  OrchestrationLogEntry,
   TradeRecord,
 } from "@/types";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import {
+  Activity,
   ArrowDown,
   ArrowUp,
   Brain,
   Coins,
+  Cpu,
+  FlaskConical,
+  Gauge,
   GitBranch,
   Layers,
   Network as NetworkIcon,
@@ -71,8 +79,10 @@ import {
   RotateCcw,
   Sparkles,
   Target,
+  TrendingDown,
   TrendingUp,
   Users,
+  Zap,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
@@ -613,6 +623,230 @@ function NetworksPanel({
   );
 }
 
+function CoreStatusCard({
+  metrics,
+  loading,
+}: {
+  metrics: ReturnType<typeof useCoreMetrics>["data"];
+  loading: boolean;
+}) {
+  const coreStatus = metrics?.coreStatus ?? "unknown";
+  const statusMeta =
+    coreStatus === "active"
+      ? {
+          dot: "bg-state-alive glow-alive",
+          text: "text-state-alive",
+          label: "Running",
+        }
+      : coreStatus === "conserving"
+        ? {
+            dot: "bg-continuation-conserving glow-continuation-conserving",
+            text: "text-continuation-conserving",
+            label: "Conserving",
+          }
+        : {
+            dot: "bg-state-dormant glow-dormant",
+            text: "text-state-dormant",
+            label: "Paused",
+          };
+
+  return (
+    <Card className="border-border bg-card shadow-subtle">
+      <CardContent className="flex flex-col gap-4 p-5">
+        <div className="flex items-center gap-2">
+          <span className="flex size-8 items-center justify-center rounded-md border border-orchestrate/40 bg-orchestrate/10 text-orchestrate">
+            <Cpu className="size-4" />
+          </span>
+          <div>
+            <h2 className="font-display text-base font-semibold text-foreground">
+              Evolution Core
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Self-rewriting rule engine status
+            </p>
+          </div>
+        </div>
+
+        {loading ? (
+          <Skeleton className="h-24 w-full" />
+        ) : (
+          <div className="flex flex-col gap-3">
+            <div
+              className="flex items-center gap-3 rounded-lg border border-border bg-background p-3"
+              data-ocid="dashboard.core_status"
+            >
+              <span
+                className={cn("size-3 rounded-full", statusMeta.dot)}
+                aria-hidden="true"
+              />
+              <div className="min-w-0">
+                <p
+                  className={cn(
+                    "font-display text-sm font-semibold",
+                    statusMeta.text,
+                  )}
+                >
+                  {statusMeta.label}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Epoch {metrics?.epoch.toString() ?? "—"}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-md border border-border bg-background px-3 py-2">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                Budget spent this epoch
+              </p>
+              <p className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-budget">
+                {metrics
+                  ? formatInteger(Number(metrics.budgetState.spent))
+                  : "—"}
+              </p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+const FEED_KIND_META: Record<
+  OrchestrationKind,
+  {
+    label: string;
+    dot: string;
+    text: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }
+> = {
+  observation: {
+    label: "Observation",
+    dot: "bg-orchestrate",
+    text: "text-orchestrate",
+    icon: Activity,
+  },
+  mutation: {
+    label: "Mutation",
+    dot: "bg-orchestrate-mutate",
+    text: "text-orchestrate-mutate",
+    icon: Zap,
+  },
+  trial: {
+    label: "Trial",
+    dot: "bg-rule-trial",
+    text: "text-rule-trial",
+    icon: FlaskConical,
+  },
+  promotion: {
+    label: "Promotion",
+    dot: "bg-orchestrate-retain",
+    text: "text-orchestrate-retain",
+    icon: TrendingUp,
+  },
+  retirement: {
+    label: "Retirement",
+    dot: "bg-orchestrate-discard",
+    text: "text-orchestrate-discard",
+    icon: TrendingDown,
+  },
+};
+
+function OrchestrationFeed({
+  entries,
+  loading,
+}: {
+  entries: OrchestrationLogEntry[];
+  loading: boolean;
+}) {
+  const recent = entries.slice(0, 6);
+
+  return (
+    <Card className="border-border bg-card shadow-subtle">
+      <CardContent className="p-5">
+        <div className="flex items-center gap-2">
+          <span className="flex size-8 items-center justify-center rounded-md border border-orchestrate/40 bg-orchestrate/10 text-orchestrate">
+            <Activity className="size-4" />
+          </span>
+          <div>
+            <h2 className="font-display text-base font-semibold text-foreground">
+              Orchestration Activity
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Recent rule mutations and promotions from the evolution core
+            </p>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="mt-4 space-y-3">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={`feed-skel-${i}`} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : recent.length === 0 ? (
+          <div
+            className="mt-4 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-10 text-center"
+            data-ocid="dashboard.orchestration_empty_state"
+          >
+            <Activity className="size-5 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              No orchestration activity yet. Advance an epoch in the Evolution
+              Core.
+            </p>
+          </div>
+        ) : (
+          <ul className="mt-4 space-y-2.5">
+            {recent.map((entry, i) => {
+              const meta = FEED_KIND_META[entry.kind];
+              const Icon = meta.icon;
+              return (
+                <li
+                  key={`${entry.epoch.toString()}-${i}`}
+                  data-ocid={`dashboard.orchestration.item.${i}`}
+                  className="flex items-center gap-3 rounded-lg border border-border bg-background p-3"
+                >
+                  <span
+                    className={cn(
+                      "flex size-7 shrink-0 items-center justify-center rounded-md bg-current/10",
+                      meta.text,
+                    )}
+                  >
+                    <Icon className="size-3.5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "text-xs font-semibold uppercase tracking-wide",
+                          meta.text,
+                        )}
+                      >
+                        {meta.label}
+                      </span>
+                      {entry.ruleId !== undefined && (
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          rule #{entry.ruleId.toString()}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-0.5 truncate font-mono text-xs text-foreground">
+                      {entry.detail}
+                    </p>
+                  </div>
+                  <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+                    E{entry.epoch.toString()}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function Dashboard() {
   const navigate = useNavigate({ from: "/dashboard" });
   const search = useSearch({ from: "/dashboard" });
@@ -623,6 +857,9 @@ export function Dashboard() {
     useLearningRecords();
   const { data: trades, isLoading: tradesLoading } = useTrades();
   const { data: networks, isLoading: networksLoading } = useNetworks();
+  const { data: coreMetrics, isLoading: coreLoading } = useCoreMetrics();
+  const { data: orchestration, isLoading: orchestrationLoading } =
+    useOrchestrationLog();
   const { running, spotlightAgentId, pause, resume, reset, setSpotlight } =
     useSimulationState();
 
@@ -745,7 +982,7 @@ export function Dashboard() {
       </div>
 
       {/* Aggregate stats */}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard
           label="Total money supply"
           value={stats ? formatMoney(stats.totalMoney) : "—"}
@@ -774,6 +1011,28 @@ export function Dashboard() {
           accent="text-state-dormant"
           loading={statsLoading}
         />
+        <StatCard
+          label="Continuation score"
+          value={
+            coreMetrics
+              ? `${(coreMetrics.currentScore.compositeScore * 100).toFixed(1)}%`
+              : "—"
+          }
+          icon={Gauge}
+          accent="text-continuation-healthy"
+          loading={coreLoading}
+        />
+      </div>
+
+      {/* Core status + orchestration feed */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <CoreStatusCard metrics={coreMetrics} loading={coreLoading} />
+        <div className="lg:col-span-2">
+          <OrchestrationFeed
+            entries={orchestration ?? []}
+            loading={orchestrationLoading}
+          />
+        </div>
       </div>
 
       {/* Controls */}

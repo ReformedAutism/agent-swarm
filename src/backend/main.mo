@@ -6,6 +6,7 @@ import MixinAuthorization "mo:caffeineai-authorization/MixinAuthorization";
 import OQL "mo:caffeineai-oql";
 import Expose "mo:caffeineai-oql/Expose";
 import ListEntity "mo:caffeineai-oql/ListEntity";
+import ArrayEntity "mo:caffeineai-oql/ArrayEntity";
 import Entity "mo:caffeineai-oql/Entity";
 import RecordValue "mo:caffeineai-oql/RecordValue";
 import NatValue "mo:caffeineai-oql/NatValue";
@@ -24,6 +25,8 @@ import WealthTrackApi "mixins/wealthtrack-api";
 import SimulationApi "mixins/simulation-api";
 import SwarmExtensionsApi "mixins/swarm-extensions-api";
 import ApiDocMixin "mixins/api-doc";
+import EvolutionCoreTypes "types/evolution-core";
+import EvolutionCoreApi "mixins/evolution-core-api";
 
 actor Self {
   let accessControlState : AccessControl.AccessControlState;
@@ -43,6 +46,7 @@ actor Self {
   let nextLearningId : { var next : Nat };
   let nextTradeId : { var next : Nat };
   let nextNetworkId : { var next : Nat };
+  let coreState : EvolutionCoreTypes.CoreState;
 
   include MixinAuthorization(accessControlState, null);
 
@@ -75,6 +79,8 @@ actor Self {
     nextTradeId,
     nextNetworkId,
   );
+
+  include EvolutionCoreApi(accessControlState, coreState);
 
   include ApiDocMixin();
 
@@ -184,6 +190,36 @@ actor Self {
         .payload("owner", func ((_, t)) = t.owner)
         .payload("balanceCount", func ((_, t)) = t.balances.size())
         .public_()
+        .build(),
+      coreState.rules.toEntityManual<EvolutionCoreTypes.RuleRecord>("rule", "RuleRecord", "id")
+        .sample({ id = 0; domain = ""; body = ""; version = 0; parent = null; status = #active; contribution = 0.0; createdEpoch = 0 })
+        .payload("id", func r = r.id)
+        .payload("domain", func r = r.domain)
+        .payload("body", func r = r.body)
+        .payload("version", func r = r.version)
+        .payload("parent", func r = (switch (r.parent) { case (?p) { p }; case null { 0 } }))
+        .payload("status", func r = (switch (r.status) { case (#active) { "active" }; case (#trial) { "trial" }; case (#retired) { "retired" } }))
+        .payload("contribution", func r = r.contribution)
+        .payload("createdEpoch", func r = r.createdEpoch)
+        .controllerOnly()
+        .build(),
+      coreState.trials.toEntityManual<EvolutionCoreTypes.TrialRecord>("trial", "TrialRecord", "ruleId")
+        .sample({ ruleId = 0; variantBody = ""; outcome = #improved; continuationDelta = 0.0; epoch = 0 })
+        .payload("ruleId", func t = t.ruleId)
+        .payload("variantBody", func t = t.variantBody)
+        .payload("outcome", func t = (switch (t.outcome) { case (#improved) { "improved" }; case (#neutral) { "neutral" }; case (#worse) { "worse" } }))
+        .payload("continuationDelta", func t = t.continuationDelta)
+        .payload("epoch", func t = t.epoch)
+        .controllerOnly()
+        .build(),
+      coreState.log.toEntityManual<EvolutionCoreTypes.OrchestrationLogEntry>("orchestrationLog", "OrchestrationLogEntry", "epoch")
+        .sample({ epoch = 0; kind = #observation; ruleId = null; detail = ""; continuationDelta = null })
+        .payload("epoch", func e = e.epoch)
+        .payload("kind", func e = (switch (e.kind) { case (#observation) { "observation" }; case (#mutation) { "mutation" }; case (#trial) { "trial" }; case (#promotion) { "promotion" }; case (#retirement) { "retirement" } }))
+        .payload("ruleId", func e = (switch (e.ruleId) { case (?r) { r }; case null { 0 } }))
+        .payload("detail", func e = e.detail)
+        .payload("continuationDelta", func e = (switch (e.continuationDelta) { case (?d) { d }; case null { 0.0 } }))
+        .controllerOnly()
         .build(),
     ];
   });

@@ -2,6 +2,7 @@ import { Layout } from "@/components/Layout";
 import { useSimulationDriver } from "@/hooks/useQueries";
 import { AgentDetail } from "@/pages/AgentDetail";
 import { Dashboard } from "@/pages/Dashboard";
+import { EvolutionCore } from "@/pages/EvolutionCore";
 import { Landing } from "@/pages/Landing";
 import { Networks } from "@/pages/Networks";
 import { AGENT_SORT_KEYS, AGENT_STATUSES } from "@/types";
@@ -96,12 +97,19 @@ const networksRoute = createRoute({
   component: Networks,
 });
 
+const evolutionRoute = createRoute({
+  getParentRoute: () => protectedLayout,
+  path: "/evolution",
+  component: EvolutionCore,
+});
+
 const routeTree = rootRoute.addChildren([
   landingRoute,
   protectedLayout.addChildren([
     dashboardRoute,
     agentDetailRoute,
     networksRoute,
+    evolutionRoute,
   ]),
 ]);
 

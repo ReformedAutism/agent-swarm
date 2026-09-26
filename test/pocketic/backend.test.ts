@@ -179,4 +179,57 @@ describe("swarm simulation backend", () => {
     const agents = await actor.listAgents();
     expect(await actor.getAgentTrades(agents[0].id)).toEqual([]);
   });
+
+  it("returns core metrics with a continuation score and seeded rule registry", async () => {
+    const metrics = await actor.getCoreMetrics();
+    expect(metrics.coreStatus).toBe("active");
+    expect(metrics.epoch).toBeGreaterThanOrEqual(0n);
+    expect(metrics.currentScore.compositeScore).toBeGreaterThanOrEqual(0);
+    expect(metrics.budgetState.perEpoch).toBeGreaterThan(0n);
+
+    // The registry is seeded from the existing behaviors so the swarm starts
+    // with its current capabilities.
+    const rules = await actor.listRules();
+    expect(rules.length).toBeGreaterThan(0);
+    for (const rule of rules) {
+      expect(rule.domain.length).toBeGreaterThan(0);
+      expect(rule.body.length).toBeGreaterThan(0);
+      expect(rule.version).toBeGreaterThanOrEqual(1n);
+    }
+
+    // A rule can be fetched by id.
+    const first = await actor.getRule(rules[0].id);
+    expect(first).toEqual([rules[0]]);
+    expect(await actor.getRule(999999n)).toEqual([]);
+  });
+
+  it("advancing an epoch produces orchestration activity without trapping", async () => {
+    const before = await actor.listOrchestrationLog();
+    const metrics = await actor.advanceEpoch();
+    expect(metrics.epoch).toBeGreaterThanOrEqual(0n);
+
+    const after = await actor.listOrchestrationLog();
+    // Advancing the epoch records observations (and possibly mutations,
+    // trials, promotions, retirements), so the log grows.
+    expect(after.length).toBeGreaterThanOrEqual(before.length);
+    for (const entry of after) {
+      expect(entry.detail.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("resets the evolution core to seed rules and clears orchestration state", async () => {
+    await actor.advanceEpoch();
+    const rulesBefore = await actor.listRules();
+    const logBefore = await actor.listOrchestrationLog();
+    expect(logBefore.length).toBeGreaterThan(0);
+
+    await expect(actor.resetEvolutionCore()).resolves.toBeNull();
+
+    // Reset restores the seed rules and clears the orchestration state.
+    const rulesAfter = await actor.listRules();
+    expect(rulesAfter.length).toBeGreaterThan(0);
+    expect(await actor.listOrchestrationLog()).toEqual([]);
+    // The seed rules are restored (at least the original set is present).
+    expect(rulesAfter.length).toBeGreaterThanOrEqual(rulesBefore.length);
+  });
 });

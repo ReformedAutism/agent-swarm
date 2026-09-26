@@ -18,6 +18,7 @@ import {
   useAgentLearning,
   useAgentTrades,
   useNetworks,
+  useRules,
   useSimulationState,
 } from "@/hooks/useQueries";
 import {
@@ -31,12 +32,19 @@ import {
   statusLabel,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { AgentStatus, LearningRecord, TradeRecord } from "@/types";
+import type {
+  AgentStatus,
+  LearningRecord,
+  RuleRecord,
+  RuleStatus,
+  TradeRecord,
+} from "@/types";
 import { Link, useParams } from "@tanstack/react-router";
 import {
   ArrowDownRight,
   ArrowLeft,
   ArrowUpRight,
+  Braces,
   Brain,
   CircleDot,
   Coins,
@@ -528,6 +536,130 @@ function HistoryChart({
   );
 }
 
+const RULE_STATUS_META: Record<
+  RuleStatus,
+  { label: string; badge: string; dot: string }
+> = {
+  active: {
+    label: "Active",
+    badge: "border-rule-active/40 bg-rule-active/10 text-rule-active",
+    dot: "bg-rule-active",
+  },
+  trial: {
+    label: "Trial",
+    badge: "border-rule-trial/40 bg-rule-trial/10 text-rule-trial",
+    dot: "bg-rule-trial",
+  },
+  retired: {
+    label: "Retired",
+    badge: "border-rule-retired/40 bg-rule-retired/10 text-rule-retired",
+    dot: "bg-rule-retired",
+  },
+};
+
+function GoverningRulesCard({
+  rules,
+  domain,
+  loading,
+}: {
+  rules: RuleRecord[];
+  domain: string;
+  loading: boolean;
+}) {
+  const normalized = domain.trim().toLowerCase();
+  const governing = rules.filter(
+    (rule) =>
+      rule.domain.trim().toLowerCase() === normalized ||
+      rule.domain.trim().toLowerCase().includes(normalized) ||
+      normalized.includes(rule.domain.trim().toLowerCase()),
+  );
+  const shown = governing.length > 0 ? governing : rules;
+
+  return (
+    <Card className="gap-3 py-5">
+      <CardHeader className="px-5 py-0">
+        <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <Braces className="size-4 text-rule-active" />
+          Governing rules
+        </CardTitle>
+        <CardDescription>
+          Rule versions from the evolution core that govern this agent's{" "}
+          {domain} behavior.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="px-5">
+        {loading ? (
+          <div className="space-y-3">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={`rule-skel-${i}`} className="h-14 rounded-lg" />
+            ))}
+          </div>
+        ) : shown.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No governing rules registered yet.
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {shown.map((rule, index) => {
+              const meta = RULE_STATUS_META[rule.status];
+              const positive = rule.contribution >= 0;
+              return (
+                <li
+                  key={rule.id.toString()}
+                  className="rounded-lg border border-rule-active/25 bg-rule-active/5 p-3"
+                  data-ocid={`agent.rule.item.${index}`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-rule-active/40 bg-rule-active/10 font-mono text-xs font-bold text-rule-active">
+                        #{rule.id.toString()}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate font-display text-sm font-semibold text-foreground">
+                          {rule.domain}
+                        </p>
+                        <p className="truncate font-mono text-[10px] text-muted-foreground">
+                          v{rule.version.toString()} · E
+                          {rule.createdEpoch.toString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={cn("gap-1.5 border-transparent", meta.badge)}
+                      data-ocid={`agent.rule.status.${index}`}
+                    >
+                      <span className={cn("size-1.5 rounded-full", meta.dot)} />
+                      {meta.label}
+                    </Badge>
+                  </div>
+                  <p className="mt-2 truncate font-mono text-xs text-muted-foreground">
+                    {rule.body}
+                  </p>
+                  <div className="mt-2 flex items-center justify-between border-t border-rule-active/15 pt-2">
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                      Contribution
+                    </span>
+                    <span
+                      className={cn(
+                        "font-mono text-xs font-semibold tabular-nums",
+                        positive ? "text-trade-buy" : "text-trade-sell",
+                      )}
+                    >
+                      {positive ? "+" : ""}
+                      {(rule.contribution * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function AgentDetailSkeleton() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-8">
@@ -558,6 +690,7 @@ export function AgentDetail() {
   const { data: learning, isLoading: learningLoading } = useAgentLearning(id);
   const { data: trades, isLoading: tradesLoading } = useAgentTrades(id);
   const { data: networks, isLoading: networksLoading } = useNetworks();
+  const { data: rules, isLoading: rulesLoading } = useRules();
   const { spotlightAgentId, setSpotlight } = useSimulationState();
 
   const isSpotlighted = spotlightAgentId === id;
@@ -755,6 +888,15 @@ export function AgentDetail() {
           color="oklch(var(--state-evolving))"
           formatter={formatKnowledge}
           dataKey="knowledge"
+        />
+      </div>
+
+      {/* Governing rules */}
+      <div className="mt-6">
+        <GoverningRulesCard
+          rules={rules ?? []}
+          domain={agent.strategy.name}
+          loading={rulesLoading}
         />
       </div>
 

@@ -4,11 +4,12 @@ import { cn } from "@/lib/utils";
 import { useInternetIdentity } from "@caffeineai/core-infrastructure";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { Activity, LogOut, Network, Radar } from "lucide-react";
+import { Activity, GitBranch, LogOut, Network, Radar } from "lucide-react";
 
 const NAV_LINKS = [
   { to: "/dashboard", label: "Dashboard", icon: Radar },
   { to: "/networks", label: "Networks", icon: Network },
+  { to: "/evolution", label: "Evolution", icon: GitBranch },
 ] as const;
 
 export function Layout() {

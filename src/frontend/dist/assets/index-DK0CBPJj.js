@@ -35922,6 +35922,24 @@ const TransactionInput = Record({
   "category": Text$1,
   "amount": Float64
 });
+const ContinuationScore = Record({
+  "reserves": Float64,
+  "survival": Float64,
+  "uptime": Float64,
+  "compositeScore": Float64
+});
+const BudgetState = Record({
+  "perEpoch": Nat,
+  "spent": Nat,
+  "remaining": Nat
+});
+const CoreMetrics = Record({
+  "history": Vec(ContinuationScore),
+  "epoch": Nat,
+  "budgetState": BudgetState,
+  "currentScore": ContinuationScore,
+  "coreStatus": Text$1
+});
 const UserRole = Variant({
   "admin": Null,
   "user": Null,
@@ -36019,6 +36037,21 @@ const Network$1 = Record({
   "memberAgentIds": Vec(Nat),
   "sharedStrategyPool": Vec(Strategy)
 });
+const RuleStatus = Variant({
+  "trial": Null,
+  "active": Null,
+  "retired": Null
+});
+const RuleRecord = Record({
+  "id": Nat,
+  "status": RuleStatus,
+  "domain": Text$1,
+  "body": Text$1,
+  "version": Nat,
+  "contribution": Float64,
+  "parent": Opt(Nat),
+  "createdEpoch": Nat
+});
 const Contribution = Record({
   "date": Timestamp,
   "amount": Float64
@@ -36055,6 +36088,20 @@ const TreasuryState = Record({
   "owner": UserId,
   "balances": Vec(TokenBalance)
 });
+const OrchestrationKind = Variant({
+  "trial": Null,
+  "promotion": Null,
+  "observation": Null,
+  "retirement": Null,
+  "mutation": Null
+});
+const OrchestrationLogEntry = Record({
+  "ruleId": Opt(Nat),
+  "kind": OrchestrationKind,
+  "continuationDelta": Opt(Float64),
+  "detail": Text$1,
+  "epoch": Nat
+});
 const SimulationControl = Variant({
   "resume": Null,
   "pause": Null
@@ -36067,6 +36114,7 @@ Service({
   "addContribution": Func([Nat, Float64], [], []),
   "addSavingsGoal": Func([SavingsGoalInput], [Nat], []),
   "addTransaction": Func([TransactionInput], [Nat], []),
+  "advanceEpoch": Func([], [CoreMetrics], []),
   "advanceTick": Func([], [], []),
   "assignCallerUserRole": Func([Principal2, UserRole], [], []),
   "createNetwork": Func([Text$1], [Nat], []),
@@ -36091,7 +36139,9 @@ Service({
   "getBudget": Func([Nat], [Opt(Budget)], ["query"]),
   "getCallerProfile": Func([], [Opt(UserProfile)], ["query"]),
   "getCallerUserRole": Func([], [UserRole], ["query"]),
+  "getCoreMetrics": Func([], [CoreMetrics], ["query"]),
   "getNetwork": Func([Nat], [Opt(Network$1)], ["query"]),
+  "getRule": Func([Nat], [Opt(RuleRecord)], ["query"]),
   "getSavingsGoal": Func([Nat], [Opt(SavingsGoal)], ["query"]),
   "getSwarmStats": Func([], [SwarmStats], ["query"]),
   "getTransaction": Func([Nat], [Opt(Transaction)], ["query"]),
@@ -36103,6 +36153,12 @@ Service({
   "listBudgets": Func([], [Vec(Budget)], ["query"]),
   "listLearningRecords": Func([], [Vec(LearningRecord)], ["query"]),
   "listNetworks": Func([], [Vec(Network$1)], ["query"]),
+  "listOrchestrationLog": Func(
+    [],
+    [Vec(OrchestrationLogEntry)],
+    ["query"]
+  ),
+  "listRules": Func([], [Vec(RuleRecord)], ["query"]),
   "listSavingsGoals": Func([], [Vec(SavingsGoal)], ["query"]),
   "listTrades": Func([], [Vec(TradeRecord)], ["query"]),
   "listTransactions": Func([], [Vec(Transaction)], ["query"]),
@@ -36111,6 +36167,7 @@ Service({
     [],
     []
   ),
+  "resetEvolutionCore": Func([], [], []),
   "resetSwarm": Func([], [], []),
   "saveCallerProfile": Func([UserProfile], [], []),
   "schema": Func([], [Text$1], ["query"]),
@@ -36164,6 +36221,24 @@ const idlFactory = ({ IDL: IDL2 }) => {
     "note": IDL2.Text,
     "category": IDL2.Text,
     "amount": IDL2.Float64
+  });
+  const ContinuationScore2 = IDL2.Record({
+    "reserves": IDL2.Float64,
+    "survival": IDL2.Float64,
+    "uptime": IDL2.Float64,
+    "compositeScore": IDL2.Float64
+  });
+  const BudgetState2 = IDL2.Record({
+    "perEpoch": IDL2.Nat,
+    "spent": IDL2.Nat,
+    "remaining": IDL2.Nat
+  });
+  const CoreMetrics2 = IDL2.Record({
+    "history": IDL2.Vec(ContinuationScore2),
+    "epoch": IDL2.Nat,
+    "budgetState": BudgetState2,
+    "currentScore": ContinuationScore2,
+    "coreStatus": IDL2.Text
   });
   const UserRole2 = IDL2.Variant({
     "admin": IDL2.Null,
@@ -36256,6 +36331,21 @@ const idlFactory = ({ IDL: IDL2 }) => {
     "memberAgentIds": IDL2.Vec(IDL2.Nat),
     "sharedStrategyPool": IDL2.Vec(Strategy2)
   });
+  const RuleStatus2 = IDL2.Variant({
+    "trial": IDL2.Null,
+    "active": IDL2.Null,
+    "retired": IDL2.Null
+  });
+  const RuleRecord2 = IDL2.Record({
+    "id": IDL2.Nat,
+    "status": RuleStatus2,
+    "domain": IDL2.Text,
+    "body": IDL2.Text,
+    "version": IDL2.Nat,
+    "contribution": IDL2.Float64,
+    "parent": IDL2.Opt(IDL2.Nat),
+    "createdEpoch": IDL2.Nat
+  });
   const Contribution2 = IDL2.Record({
     "date": Timestamp2,
     "amount": IDL2.Float64
@@ -36292,6 +36382,20 @@ const idlFactory = ({ IDL: IDL2 }) => {
     "owner": UserId2,
     "balances": IDL2.Vec(TokenBalance2)
   });
+  const OrchestrationKind2 = IDL2.Variant({
+    "trial": IDL2.Null,
+    "promotion": IDL2.Null,
+    "observation": IDL2.Null,
+    "retirement": IDL2.Null,
+    "mutation": IDL2.Null
+  });
+  const OrchestrationLogEntry2 = IDL2.Record({
+    "ruleId": IDL2.Opt(IDL2.Nat),
+    "kind": OrchestrationKind2,
+    "continuationDelta": IDL2.Opt(IDL2.Float64),
+    "detail": IDL2.Text,
+    "epoch": IDL2.Nat
+  });
   const SimulationControl2 = IDL2.Variant({
     "resume": IDL2.Null,
     "pause": IDL2.Null
@@ -36304,6 +36408,7 @@ const idlFactory = ({ IDL: IDL2 }) => {
     "addContribution": IDL2.Func([IDL2.Nat, IDL2.Float64], [], []),
     "addSavingsGoal": IDL2.Func([SavingsGoalInput2], [IDL2.Nat], []),
     "addTransaction": IDL2.Func([TransactionInput2], [IDL2.Nat], []),
+    "advanceEpoch": IDL2.Func([], [CoreMetrics2], []),
     "advanceTick": IDL2.Func([], [], []),
     "assignCallerUserRole": IDL2.Func([IDL2.Principal, UserRole2], [], []),
     "createNetwork": IDL2.Func([IDL2.Text], [IDL2.Nat], []),
@@ -36328,7 +36433,9 @@ const idlFactory = ({ IDL: IDL2 }) => {
     "getBudget": IDL2.Func([IDL2.Nat], [IDL2.Opt(Budget2)], ["query"]),
     "getCallerProfile": IDL2.Func([], [IDL2.Opt(UserProfile2)], ["query"]),
     "getCallerUserRole": IDL2.Func([], [UserRole2], ["query"]),
+    "getCoreMetrics": IDL2.Func([], [CoreMetrics2], ["query"]),
     "getNetwork": IDL2.Func([IDL2.Nat], [IDL2.Opt(Network2)], ["query"]),
+    "getRule": IDL2.Func([IDL2.Nat], [IDL2.Opt(RuleRecord2)], ["query"]),
     "getSavingsGoal": IDL2.Func([IDL2.Nat], [IDL2.Opt(SavingsGoal2)], ["query"]),
     "getSwarmStats": IDL2.Func([], [SwarmStats2], ["query"]),
     "getTransaction": IDL2.Func([IDL2.Nat], [IDL2.Opt(Transaction2)], ["query"]),
@@ -36340,6 +36447,12 @@ const idlFactory = ({ IDL: IDL2 }) => {
     "listBudgets": IDL2.Func([], [IDL2.Vec(Budget2)], ["query"]),
     "listLearningRecords": IDL2.Func([], [IDL2.Vec(LearningRecord2)], ["query"]),
     "listNetworks": IDL2.Func([], [IDL2.Vec(Network2)], ["query"]),
+    "listOrchestrationLog": IDL2.Func(
+      [],
+      [IDL2.Vec(OrchestrationLogEntry2)],
+      ["query"]
+    ),
+    "listRules": IDL2.Func([], [IDL2.Vec(RuleRecord2)], ["query"]),
     "listSavingsGoals": IDL2.Func([], [IDL2.Vec(SavingsGoal2)], ["query"]),
     "listTrades": IDL2.Func([], [IDL2.Vec(TradeRecord2)], ["query"]),
     "listTransactions": IDL2.Func([], [IDL2.Vec(Transaction2)], ["query"]),
@@ -36348,6 +36461,7 @@ const idlFactory = ({ IDL: IDL2 }) => {
       [],
       []
     ),
+    "resetEvolutionCore": IDL2.Func([], [], []),
     "resetSwarm": IDL2.Func([], [], []),
     "saveCallerProfile": IDL2.Func([UserProfile2], [], []),
     "schema": IDL2.Func([], [IDL2.Text], ["query"]),
@@ -36359,6 +36473,9 @@ const idlFactory = ({ IDL: IDL2 }) => {
     "withdrawTreasury": IDL2.Func([IDL2.Text, IDL2.Float64], [], [])
   });
 };
+function record_opt_to_undefined(arg) {
+  return arg == null ? void 0 : arg;
+}
 class Backend {
   constructor(actor, _uploadFile, _downloadFile, processError2) {
     this.actor = actor;
@@ -36461,6 +36578,20 @@ class Backend {
       }
     } else {
       const result = await this.actor.addTransaction(to_candid_TransactionInput_n5(this._uploadFile, this._downloadFile, arg0));
+      return result;
+    }
+  }
+  async advanceEpoch() {
+    if (this.processError) {
+      try {
+        const result = await this.actor.advanceEpoch();
+        return result;
+      } catch (e3) {
+        this.processError(e3);
+        throw new Error("unreachable");
+      }
+    } else {
+      const result = await this.actor.advanceEpoch();
       return result;
     }
   }
@@ -36688,6 +36819,20 @@ class Backend {
       return from_candid_UserRole_n33(this._uploadFile, this._downloadFile, result);
     }
   }
+  async getCoreMetrics() {
+    if (this.processError) {
+      try {
+        const result = await this.actor.getCoreMetrics();
+        return result;
+      } catch (e3) {
+        this.processError(e3);
+        throw new Error("unreachable");
+      }
+    } else {
+      const result = await this.actor.getCoreMetrics();
+      return result;
+    }
+  }
   async getNetwork(arg0) {
     if (this.processError) {
       try {
@@ -36702,18 +36847,32 @@ class Backend {
       return from_candid_opt_n35(this._uploadFile, this._downloadFile, result);
     }
   }
-  async getSavingsGoal(arg0) {
+  async getRule(arg0) {
     if (this.processError) {
       try {
-        const result = await this.actor.getSavingsGoal(arg0);
+        const result = await this.actor.getRule(arg0);
         return from_candid_opt_n36(this._uploadFile, this._downloadFile, result);
       } catch (e3) {
         this.processError(e3);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.getSavingsGoal(arg0);
+      const result = await this.actor.getRule(arg0);
       return from_candid_opt_n36(this._uploadFile, this._downloadFile, result);
+    }
+  }
+  async getSavingsGoal(arg0) {
+    if (this.processError) {
+      try {
+        const result = await this.actor.getSavingsGoal(arg0);
+        return from_candid_opt_n42(this._uploadFile, this._downloadFile, result);
+      } catch (e3) {
+        this.processError(e3);
+        throw new Error("unreachable");
+      }
+    } else {
+      const result = await this.actor.getSavingsGoal(arg0);
+      return from_candid_opt_n42(this._uploadFile, this._downloadFile, result);
     }
   }
   async getSwarmStats() {
@@ -36734,14 +36893,14 @@ class Backend {
     if (this.processError) {
       try {
         const result = await this.actor.getTransaction(arg0);
-        return from_candid_opt_n37(this._uploadFile, this._downloadFile, result);
+        return from_candid_opt_n43(this._uploadFile, this._downloadFile, result);
       } catch (e3) {
         this.processError(e3);
         throw new Error("unreachable");
       }
     } else {
       const result = await this.actor.getTransaction(arg0);
-      return from_candid_opt_n37(this._uploadFile, this._downloadFile, result);
+      return from_candid_opt_n43(this._uploadFile, this._downloadFile, result);
     }
   }
   async getTreasury() {
@@ -36804,14 +36963,14 @@ class Backend {
     if (this.processError) {
       try {
         const result = await this.actor.listAgents();
-        return from_candid_vec_n42(this._uploadFile, this._downloadFile, result);
+        return from_candid_vec_n48(this._uploadFile, this._downloadFile, result);
       } catch (e3) {
         this.processError(e3);
         throw new Error("unreachable");
       }
     } else {
       const result = await this.actor.listAgents();
-      return from_candid_vec_n42(this._uploadFile, this._downloadFile, result);
+      return from_candid_vec_n48(this._uploadFile, this._downloadFile, result);
     }
   }
   async listBudgets() {
@@ -36856,6 +37015,34 @@ class Backend {
       return result;
     }
   }
+  async listOrchestrationLog() {
+    if (this.processError) {
+      try {
+        const result = await this.actor.listOrchestrationLog();
+        return from_candid_vec_n49(this._uploadFile, this._downloadFile, result);
+      } catch (e3) {
+        this.processError(e3);
+        throw new Error("unreachable");
+      }
+    } else {
+      const result = await this.actor.listOrchestrationLog();
+      return from_candid_vec_n49(this._uploadFile, this._downloadFile, result);
+    }
+  }
+  async listRules() {
+    if (this.processError) {
+      try {
+        const result = await this.actor.listRules();
+        return from_candid_vec_n55(this._uploadFile, this._downloadFile, result);
+      } catch (e3) {
+        this.processError(e3);
+        throw new Error("unreachable");
+      }
+    } else {
+      const result = await this.actor.listRules();
+      return from_candid_vec_n55(this._uploadFile, this._downloadFile, result);
+    }
+  }
   async listSavingsGoals() {
     if (this.processError) {
       try {
@@ -36888,14 +37075,14 @@ class Backend {
     if (this.processError) {
       try {
         const result = await this.actor.listTransactions();
-        return from_candid_vec_n43(this._uploadFile, this._downloadFile, result);
+        return from_candid_vec_n56(this._uploadFile, this._downloadFile, result);
       } catch (e3) {
         this.processError(e3);
         throw new Error("unreachable");
       }
     } else {
       const result = await this.actor.listTransactions();
-      return from_candid_vec_n43(this._uploadFile, this._downloadFile, result);
+      return from_candid_vec_n56(this._uploadFile, this._downloadFile, result);
     }
   }
   async observeAndLearn(arg0, arg1, arg2, arg3) {
@@ -36909,6 +37096,20 @@ class Backend {
       }
     } else {
       const result = await this.actor.observeAndLearn(arg0, arg1, arg2, arg3);
+      return result;
+    }
+  }
+  async resetEvolutionCore() {
+    if (this.processError) {
+      try {
+        const result = await this.actor.resetEvolutionCore();
+        return result;
+      } catch (e3) {
+        this.processError(e3);
+        throw new Error("unreachable");
+      }
+    } else {
+      const result = await this.actor.resetEvolutionCore();
       return result;
     }
   }
@@ -36957,14 +37158,14 @@ class Backend {
   async setSimulationControl(arg0) {
     if (this.processError) {
       try {
-        const result = await this.actor.setSimulationControl(to_candid_SimulationControl_n44(this._uploadFile, this._downloadFile, arg0));
+        const result = await this.actor.setSimulationControl(to_candid_SimulationControl_n57(this._uploadFile, this._downloadFile, arg0));
         return result;
       } catch (e3) {
         this.processError(e3);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.setSimulationControl(to_candid_SimulationControl_n44(this._uploadFile, this._downloadFile, arg0));
+      const result = await this.actor.setSimulationControl(to_candid_SimulationControl_n57(this._uploadFile, this._downloadFile, arg0));
       return result;
     }
   }
@@ -37051,11 +37252,23 @@ function from_candid_Cell_n15(_uploadFile, _downloadFile, value) {
 function from_candid_Error_n3(_uploadFile, _downloadFile, value) {
   return from_candid_variant_n4(_uploadFile, _downloadFile, value);
 }
+function from_candid_OrchestrationKind_n52(_uploadFile, _downloadFile, value) {
+  return from_candid_variant_n53(_uploadFile, _downloadFile, value);
+}
+function from_candid_OrchestrationLogEntry_n50(_uploadFile, _downloadFile, value) {
+  return from_candid_record_n51(_uploadFile, _downloadFile, value);
+}
 function from_candid_Result__1_n1(_uploadFile, _downloadFile, value) {
   return from_candid_variant_n2(_uploadFile, _downloadFile, value);
 }
 function from_candid_Result_n11(_uploadFile, _downloadFile, value) {
   return from_candid_record_n12(_uploadFile, _downloadFile, value);
+}
+function from_candid_RuleRecord_n37(_uploadFile, _downloadFile, value) {
+  return from_candid_record_n38(_uploadFile, _downloadFile, value);
+}
+function from_candid_RuleStatus_n39(_uploadFile, _downloadFile, value) {
+  return from_candid_variant_n40(_uploadFile, _downloadFile, value);
 }
 function from_candid_TradeDirection_n29(_uploadFile, _downloadFile, value) {
   return from_candid_variant_n30(_uploadFile, _downloadFile, value);
@@ -37063,11 +37276,11 @@ function from_candid_TradeDirection_n29(_uploadFile, _downloadFile, value) {
 function from_candid_TradeRecord_n27(_uploadFile, _downloadFile, value) {
   return from_candid_record_n28(_uploadFile, _downloadFile, value);
 }
-function from_candid_TransactionType_n40(_uploadFile, _downloadFile, value) {
-  return from_candid_variant_n41(_uploadFile, _downloadFile, value);
+function from_candid_TransactionType_n46(_uploadFile, _downloadFile, value) {
+  return from_candid_variant_n47(_uploadFile, _downloadFile, value);
 }
-function from_candid_Transaction_n38(_uploadFile, _downloadFile, value) {
-  return from_candid_record_n39(_uploadFile, _downloadFile, value);
+function from_candid_Transaction_n44(_uploadFile, _downloadFile, value) {
+  return from_candid_record_n45(_uploadFile, _downloadFile, value);
 }
 function from_candid_UserRole_n33(_uploadFile, _downloadFile, value) {
   return from_candid_variant_n34(_uploadFile, _downloadFile, value);
@@ -37088,10 +37301,19 @@ function from_candid_opt_n35(_uploadFile, _downloadFile, value) {
   return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n36(_uploadFile, _downloadFile, value) {
+  return value.length === 0 ? null : from_candid_RuleRecord_n37(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n41(_uploadFile, _downloadFile, value) {
   return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n37(_uploadFile, _downloadFile, value) {
-  return value.length === 0 ? null : from_candid_Transaction_n38(_uploadFile, _downloadFile, value[0]);
+function from_candid_opt_n42(_uploadFile, _downloadFile, value) {
+  return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n43(_uploadFile, _downloadFile, value) {
+  return value.length === 0 ? null : from_candid_Transaction_n44(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n54(_uploadFile, _downloadFile, value) {
+  return value.length === 0 ? null : value[0];
 }
 function from_candid_record_n12(_uploadFile, _downloadFile, value) {
   return {
@@ -37132,15 +37354,36 @@ function from_candid_record_n28(_uploadFile, _downloadFile, value) {
     amount: value.amount
   };
 }
-function from_candid_record_n39(_uploadFile, _downloadFile, value) {
+function from_candid_record_n38(_uploadFile, _downloadFile, value) {
+  return {
+    id: value.id,
+    status: from_candid_RuleStatus_n39(_uploadFile, _downloadFile, value.status),
+    domain: value.domain,
+    body: value.body,
+    version: value.version,
+    contribution: value.contribution,
+    parent: record_opt_to_undefined(from_candid_opt_n41(_uploadFile, _downloadFile, value.parent)),
+    createdEpoch: value.createdEpoch
+  };
+}
+function from_candid_record_n45(_uploadFile, _downloadFile, value) {
   return {
     id: value.id,
     owner: value.owner,
     date: value.date,
-    kind: from_candid_TransactionType_n40(_uploadFile, _downloadFile, value.kind),
+    kind: from_candid_TransactionType_n46(_uploadFile, _downloadFile, value.kind),
     note: value.note,
     category: value.category,
     amount: value.amount
+  };
+}
+function from_candid_record_n51(_uploadFile, _downloadFile, value) {
+  return {
+    ruleId: record_opt_to_undefined(from_candid_opt_n41(_uploadFile, _downloadFile, value.ruleId)),
+    kind: from_candid_OrchestrationKind_n52(_uploadFile, _downloadFile, value.kind),
+    continuationDelta: record_opt_to_undefined(from_candid_opt_n54(_uploadFile, _downloadFile, value.continuationDelta)),
+    detail: value.detail,
+    epoch: value.epoch
   };
 }
 function from_candid_variant_n18(_uploadFile, _downloadFile, value) {
@@ -37215,8 +37458,14 @@ function from_candid_variant_n4(_uploadFile, _downloadFile, value) {
     FrontendOriginMismatch: value.FrontendOriginMismatch
   } : value;
 }
-function from_candid_variant_n41(_uploadFile, _downloadFile, value) {
+function from_candid_variant_n40(_uploadFile, _downloadFile, value) {
+  return "trial" in value ? "trial" : "active" in value ? "active" : "retired" in value ? "retired" : value;
+}
+function from_candid_variant_n47(_uploadFile, _downloadFile, value) {
   return "expense" in value ? "expense" : "income" in value ? "income" : value;
+}
+function from_candid_variant_n53(_uploadFile, _downloadFile, value) {
+  return "trial" in value ? "trial" : "promotion" in value ? "promotion" : "observation" in value ? "observation" : "retirement" in value ? "retirement" : "mutation" in value ? "mutation" : value;
 }
 function from_candid_vec_n13(_uploadFile, _downloadFile, value) {
   return value.map((x3) => from_candid_vec_n14(_uploadFile, _downloadFile, x3));
@@ -37227,14 +37476,20 @@ function from_candid_vec_n14(_uploadFile, _downloadFile, value) {
 function from_candid_vec_n26(_uploadFile, _downloadFile, value) {
   return value.map((x3) => from_candid_TradeRecord_n27(_uploadFile, _downloadFile, x3));
 }
-function from_candid_vec_n42(_uploadFile, _downloadFile, value) {
+function from_candid_vec_n48(_uploadFile, _downloadFile, value) {
   return value.map((x3) => from_candid_Agent_n22(_uploadFile, _downloadFile, x3));
 }
-function from_candid_vec_n43(_uploadFile, _downloadFile, value) {
-  return value.map((x3) => from_candid_Transaction_n38(_uploadFile, _downloadFile, x3));
+function from_candid_vec_n49(_uploadFile, _downloadFile, value) {
+  return value.map((x3) => from_candid_OrchestrationLogEntry_n50(_uploadFile, _downloadFile, x3));
 }
-function to_candid_SimulationControl_n44(_uploadFile, _downloadFile, value) {
-  return to_candid_variant_n45(_uploadFile, _downloadFile, value);
+function from_candid_vec_n55(_uploadFile, _downloadFile, value) {
+  return value.map((x3) => from_candid_RuleRecord_n37(_uploadFile, _downloadFile, x3));
+}
+function from_candid_vec_n56(_uploadFile, _downloadFile, value) {
+  return value.map((x3) => from_candid_Transaction_n44(_uploadFile, _downloadFile, x3));
+}
+function to_candid_SimulationControl_n57(_uploadFile, _downloadFile, value) {
+  return to_candid_variant_n58(_uploadFile, _downloadFile, value);
 }
 function to_candid_TradeDirection_n19(_uploadFile, _downloadFile, value) {
   return to_candid_variant_n20(_uploadFile, _downloadFile, value);
@@ -37273,7 +37528,7 @@ function to_candid_variant_n20(_uploadFile, _downloadFile, value) {
     sell: null
   } : value;
 }
-function to_candid_variant_n45(_uploadFile, _downloadFile, value) {
+function to_candid_variant_n58(_uploadFile, _downloadFile, value) {
   return value == "resume" ? {
     resume: null
   } : value == "pause" ? {
@@ -37490,6 +37745,69 @@ function useLeaveNetwork() {
     },
     onSuccess: () => {
       void queryClient2.invalidateQueries({ queryKey: ["networks"] });
+    }
+  });
+}
+function useCoreMetrics() {
+  const { actor, isFetching } = useActor(createActor);
+  return useQuery({
+    queryKey: ["core-metrics"],
+    queryFn: async () => {
+      if (!actor) throw new Error("Backend is not ready");
+      return asSwarmActor(actor).getCoreMetrics();
+    },
+    enabled: !!actor && !isFetching
+  });
+}
+function useRules() {
+  const { actor, isFetching } = useActor(createActor);
+  return useQuery({
+    queryKey: ["rules"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return asSwarmActor(actor).listRules();
+    },
+    enabled: !!actor && !isFetching
+  });
+}
+function useOrchestrationLog() {
+  const { actor, isFetching } = useActor(createActor);
+  return useQuery({
+    queryKey: ["orchestration-log"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return asSwarmActor(actor).listOrchestrationLog();
+    },
+    enabled: !!actor && !isFetching
+  });
+}
+function useAdvanceEpoch() {
+  const { actor } = useActor(createActor);
+  const queryClient2 = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Backend is not ready");
+      return asSwarmActor(actor).advanceEpoch();
+    },
+    onSuccess: () => {
+      void queryClient2.invalidateQueries({ queryKey: ["core-metrics"] });
+      void queryClient2.invalidateQueries({ queryKey: ["rules"] });
+      void queryClient2.invalidateQueries({ queryKey: ["orchestration-log"] });
+    }
+  });
+}
+function useResetEvolutionCore() {
+  const { actor } = useActor(createActor);
+  const queryClient2 = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Backend is not ready");
+      return asSwarmActor(actor).resetEvolutionCore();
+    },
+    onSuccess: () => {
+      void queryClient2.invalidateQueries({ queryKey: ["core-metrics"] });
+      void queryClient2.invalidateQueries({ queryKey: ["rules"] });
+      void queryClient2.invalidateQueries({ queryKey: ["orchestration-log"] });
     }
   });
 }
@@ -42889,7 +43207,7 @@ const createLucideIcon = (iconName, iconNode) => {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$t = [
+const __iconNode$z = [
   [
     "path",
     {
@@ -42898,7 +43216,73 @@ const __iconNode$t = [
     }
   ]
 ];
-const Activity = createLucideIcon("activity", __iconNode$t);
+const Activity = createLucideIcon("activity", __iconNode$z);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$y = [
+  ["path", { d: "m7 7 10 10", key: "1fmybs" }],
+  ["path", { d: "M17 7v10H7", key: "6fjiku" }]
+];
+const ArrowDownRight = createLucideIcon("arrow-down-right", __iconNode$y);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$x = [
+  ["path", { d: "M12 5v14", key: "s699le" }],
+  ["path", { d: "m19 12-7 7-7-7", key: "1idqje" }]
+];
+const ArrowDown = createLucideIcon("arrow-down", __iconNode$x);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$w = [
+  ["path", { d: "m12 19-7-7 7-7", key: "1l729n" }],
+  ["path", { d: "M19 12H5", key: "x3x0zl" }]
+];
+const ArrowLeft = createLucideIcon("arrow-left", __iconNode$w);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$v = [
+  ["path", { d: "M5 12h14", key: "1ays0h" }],
+  ["path", { d: "m12 5 7 7-7 7", key: "xquz4c" }]
+];
+const ArrowRight = createLucideIcon("arrow-right", __iconNode$v);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$u = [
+  ["path", { d: "M7 7h10v10", key: "1tivn9" }],
+  ["path", { d: "M7 17 17 7", key: "1vkiza" }]
+];
+const ArrowUpRight = createLucideIcon("arrow-up-right", __iconNode$u);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$t = [
+  ["path", { d: "m5 12 7-7 7 7", key: "hav0vg" }],
+  ["path", { d: "M12 19V5", key: "x0mq9r" }]
+];
+const ArrowUp = createLucideIcon("arrow-up", __iconNode$t);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -42906,72 +43290,6 @@ const Activity = createLucideIcon("activity", __iconNode$t);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$s = [
-  ["path", { d: "m7 7 10 10", key: "1fmybs" }],
-  ["path", { d: "M17 7v10H7", key: "6fjiku" }]
-];
-const ArrowDownRight = createLucideIcon("arrow-down-right", __iconNode$s);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$r = [
-  ["path", { d: "M12 5v14", key: "s699le" }],
-  ["path", { d: "m19 12-7 7-7-7", key: "1idqje" }]
-];
-const ArrowDown = createLucideIcon("arrow-down", __iconNode$r);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$q = [
-  ["path", { d: "m12 19-7-7 7-7", key: "1l729n" }],
-  ["path", { d: "M19 12H5", key: "x3x0zl" }]
-];
-const ArrowLeft = createLucideIcon("arrow-left", __iconNode$q);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$p = [
-  ["path", { d: "M5 12h14", key: "1ays0h" }],
-  ["path", { d: "m12 5 7 7-7 7", key: "xquz4c" }]
-];
-const ArrowRight = createLucideIcon("arrow-right", __iconNode$p);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$o = [
-  ["path", { d: "M7 7h10v10", key: "1tivn9" }],
-  ["path", { d: "M7 17 17 7", key: "1vkiza" }]
-];
-const ArrowUpRight = createLucideIcon("arrow-up-right", __iconNode$o);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$n = [
-  ["path", { d: "m5 12 7-7 7 7", key: "hav0vg" }],
-  ["path", { d: "M12 19V5", key: "x0mq9r" }]
-];
-const ArrowUp = createLucideIcon("arrow-up", __iconNode$n);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$m = [
   ["path", { d: "M12 7v14", key: "1akyts" }],
   [
     "path",
@@ -42981,14 +43299,34 @@ const __iconNode$m = [
     }
   ]
 ];
-const BookOpen = createLucideIcon("book-open", __iconNode$m);
+const BookOpen = createLucideIcon("book-open", __iconNode$s);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$l = [
+const __iconNode$r = [
+  [
+    "path",
+    { d: "M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1", key: "ezmyqa" }
+  ],
+  [
+    "path",
+    {
+      d: "M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1",
+      key: "e1hn23"
+    }
+  ]
+];
+const Braces = createLucideIcon("braces", __iconNode$r);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$q = [
   [
     "path",
     {
@@ -43011,62 +43349,62 @@ const __iconNode$l = [
   ["path", { d: "M6 18a4 4 0 0 1-1.967-.516", key: "2e4loj" }],
   ["path", { d: "M19.967 17.484A4 4 0 0 1 18 18", key: "159ez6" }]
 ];
-const Brain = createLucideIcon("brain", __iconNode$l);
+const Brain = createLucideIcon("brain", __iconNode$q);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$k = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
-const Check = createLucideIcon("check", __iconNode$k);
+const __iconNode$p = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
+const Check = createLucideIcon("check", __iconNode$p);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$j = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
-const ChevronDown = createLucideIcon("chevron-down", __iconNode$j);
+const __iconNode$o = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+const ChevronDown = createLucideIcon("chevron-down", __iconNode$o);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$i = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
-const ChevronUp = createLucideIcon("chevron-up", __iconNode$i);
+const __iconNode$n = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
+const ChevronUp = createLucideIcon("chevron-up", __iconNode$n);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$h = [
+const __iconNode$m = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["circle", { cx: "12", cy: "12", r: "1", key: "41hilf" }]
 ];
-const CircleDot = createLucideIcon("circle-dot", __iconNode$h);
+const CircleDot = createLucideIcon("circle-dot", __iconNode$m);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$g = [
+const __iconNode$l = [
   ["circle", { cx: "8", cy: "8", r: "6", key: "3yglwk" }],
   ["path", { d: "M18.09 10.37A6 6 0 1 1 10.34 18", key: "t5s6rm" }],
   ["path", { d: "M7 6h1v4", key: "1obek4" }],
   ["path", { d: "m16.71 13.88.7.71-2.82 2.82", key: "1rbuyh" }]
 ];
-const Coins = createLucideIcon("coins", __iconNode$g);
+const Coins = createLucideIcon("coins", __iconNode$l);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$f = [
+const __iconNode$k = [
   ["path", { d: "M12 20v2", key: "1lh1kg" }],
   ["path", { d: "M12 2v2", key: "tus03m" }],
   ["path", { d: "M17 20v2", key: "1rnc9c" }],
@@ -43082,27 +43420,56 @@ const __iconNode$f = [
   ["rect", { x: "4", y: "4", width: "16", height: "16", rx: "2", key: "1vbyd7" }],
   ["rect", { x: "8", y: "8", width: "8", height: "8", rx: "1", key: "z9xiuo" }]
 ];
-const Cpu = createLucideIcon("cpu", __iconNode$f);
+const Cpu = createLucideIcon("cpu", __iconNode$k);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$e = [
+const __iconNode$j = [
+  [
+    "path",
+    {
+      d: "M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2",
+      key: "18mbvz"
+    }
+  ],
+  ["path", { d: "M6.453 15h11.094", key: "3shlmq" }],
+  ["path", { d: "M8.5 2h7", key: "csnxdl" }]
+];
+const FlaskConical = createLucideIcon("flask-conical", __iconNode$j);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$i = [
+  ["path", { d: "m12 14 4-4", key: "9kzdfg" }],
+  ["path", { d: "M3.34 19a10 10 0 1 1 17.32 0", key: "19p75a" }]
+];
+const Gauge = createLucideIcon("gauge", __iconNode$i);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$h = [
   ["line", { x1: "6", x2: "6", y1: "3", y2: "15", key: "17qcm7" }],
   ["circle", { cx: "18", cy: "6", r: "3", key: "1h7g24" }],
   ["circle", { cx: "6", cy: "18", r: "3", key: "fqmcym" }],
   ["path", { d: "M18 9a9 9 0 0 1-9 9", key: "n2h4wq" }]
 ];
-const GitBranch = createLucideIcon("git-branch", __iconNode$e);
+const GitBranch = createLucideIcon("git-branch", __iconNode$h);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$d = [
+const __iconNode$g = [
   [
     "path",
     {
@@ -43125,19 +43492,52 @@ const __iconNode$d = [
     }
   ]
 ];
-const Layers = createLucideIcon("layers", __iconNode$d);
+const Layers = createLucideIcon("layers", __iconNode$g);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$c = [
+const __iconNode$f = [
   ["path", { d: "m16 17 5-5-5-5", key: "1bji2h" }],
   ["path", { d: "M21 12H9", key: "dn1m92" }],
   ["path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", key: "1uf3rs" }]
 ];
-const LogOut = createLucideIcon("log-out", __iconNode$c);
+const LogOut = createLucideIcon("log-out", __iconNode$f);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$e = [
+  ["rect", { x: "16", y: "16", width: "6", height: "6", rx: "1", key: "4q2zg0" }],
+  ["rect", { x: "2", y: "16", width: "6", height: "6", rx: "1", key: "8cvhb9" }],
+  ["rect", { x: "9", y: "2", width: "6", height: "6", rx: "1", key: "1egb70" }],
+  ["path", { d: "M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3", key: "1jsf9p" }],
+  ["path", { d: "M12 12V8", key: "2874zd" }]
+];
+const Network = createLucideIcon("network", __iconNode$e);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$d = [
+  ["rect", { x: "14", y: "4", width: "4", height: "16", rx: "1", key: "zuxfzm" }],
+  ["rect", { x: "6", y: "4", width: "4", height: "16", rx: "1", key: "1okwgv" }]
+];
+const Pause = createLucideIcon("pause", __iconNode$d);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$c = [["polygon", { points: "6 3 20 12 6 21 6 3", key: "1oa8hb" }]];
+const Play = createLucideIcon("play", __iconNode$c);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -43145,13 +43545,10 @@ const LogOut = createLucideIcon("log-out", __iconNode$c);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$b = [
-  ["rect", { x: "16", y: "16", width: "6", height: "6", rx: "1", key: "4q2zg0" }],
-  ["rect", { x: "2", y: "16", width: "6", height: "6", rx: "1", key: "8cvhb9" }],
-  ["rect", { x: "9", y: "2", width: "6", height: "6", rx: "1", key: "1egb70" }],
-  ["path", { d: "M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3", key: "1jsf9p" }],
-  ["path", { d: "M12 12V8", key: "2874zd" }]
+  ["path", { d: "M5 12h14", key: "1ays0h" }],
+  ["path", { d: "M12 5v14", key: "s699le" }]
 ];
-const Network = createLucideIcon("network", __iconNode$b);
+const Plus = createLucideIcon("plus", __iconNode$b);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -43159,36 +43556,6 @@ const Network = createLucideIcon("network", __iconNode$b);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$a = [
-  ["rect", { x: "14", y: "4", width: "4", height: "16", rx: "1", key: "zuxfzm" }],
-  ["rect", { x: "6", y: "4", width: "4", height: "16", rx: "1", key: "1okwgv" }]
-];
-const Pause = createLucideIcon("pause", __iconNode$a);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$9 = [["polygon", { points: "6 3 20 12 6 21 6 3", key: "1oa8hb" }]];
-const Play = createLucideIcon("play", __iconNode$9);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$8 = [
-  ["path", { d: "M5 12h14", key: "1ays0h" }],
-  ["path", { d: "M12 5v14", key: "s699le" }]
-];
-const Plus = createLucideIcon("plus", __iconNode$8);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$7 = [
   ["path", { d: "M19.07 4.93A10 10 0 0 0 6.99 3.34", key: "z3du51" }],
   ["path", { d: "M4 6h.01", key: "oypzma" }],
   ["path", { d: "M2.29 9.62A10 10 0 1 0 21.31 8.35", key: "qzzz0" }],
@@ -43198,25 +43565,25 @@ const __iconNode$7 = [
   ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }],
   ["path", { d: "m13.41 10.59 5.66-5.66", key: "mhq4k0" }]
 ];
-const Radar = createLucideIcon("radar", __iconNode$7);
+const Radar = createLucideIcon("radar", __iconNode$a);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$6 = [
+const __iconNode$9 = [
   ["path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", key: "1357e3" }],
   ["path", { d: "M3 3v5h5", key: "1xhq8a" }]
 ];
-const RotateCcw = createLucideIcon("rotate-ccw", __iconNode$6);
+const RotateCcw = createLucideIcon("rotate-ccw", __iconNode$9);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$5 = [
+const __iconNode$8 = [
   [
     "path",
     {
@@ -43229,7 +43596,42 @@ const __iconNode$5 = [
   ["path", { d: "M4 17v2", key: "vumght" }],
   ["path", { d: "M5 18H3", key: "zchphs" }]
 ];
-const Sparkles = createLucideIcon("sparkles", __iconNode$5);
+const Sparkles = createLucideIcon("sparkles", __iconNode$8);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$7 = [
+  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+  ["circle", { cx: "12", cy: "12", r: "6", key: "1vlfrh" }],
+  ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }]
+];
+const Target = createLucideIcon("target", __iconNode$7);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$6 = [
+  ["line", { x1: "10", x2: "14", y1: "2", y2: "2", key: "14vaq8" }],
+  ["line", { x1: "12", x2: "15", y1: "14", y2: "11", key: "17fdiu" }],
+  ["circle", { cx: "12", cy: "14", r: "8", key: "1e1u0o" }]
+];
+const Timer = createLucideIcon("timer", __iconNode$6);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$5 = [
+  ["path", { d: "M16 17h6v-6", key: "t6n2it" }],
+  ["path", { d: "m22 17-8.5-8.5-5 5L2 7", key: "x473p" }]
+];
+const TrendingDown = createLucideIcon("trending-down", __iconNode$5);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -43237,11 +43639,10 @@ const Sparkles = createLucideIcon("sparkles", __iconNode$5);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$4 = [
-  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-  ["circle", { cx: "12", cy: "12", r: "6", key: "1vlfrh" }],
-  ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }]
+  ["path", { d: "M16 7h6v6", key: "box55l" }],
+  ["path", { d: "m22 7-8.5 8.5-5-5L2 17", key: "1t1m79" }]
 ];
-const Target = createLucideIcon("target", __iconNode$4);
+const TrendingUp = createLucideIcon("trending-up", __iconNode$4);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -43249,10 +43650,11 @@ const Target = createLucideIcon("target", __iconNode$4);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$3 = [
-  ["path", { d: "M16 7h6v6", key: "box55l" }],
-  ["path", { d: "m22 7-8.5 8.5-5-5L2 17", key: "1t1m79" }]
+  ["path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", key: "1yyitq" }],
+  ["circle", { cx: "9", cy: "7", r: "4", key: "nufk8" }],
+  ["line", { x1: "22", x2: "16", y1: "11", y2: "11", key: "1shjgl" }]
 ];
-const TrendingUp = createLucideIcon("trending-up", __iconNode$3);
+const UserMinus = createLucideIcon("user-minus", __iconNode$3);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -43261,10 +43663,11 @@ const TrendingUp = createLucideIcon("trending-up", __iconNode$3);
  */
 const __iconNode$2 = [
   ["path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", key: "1yyitq" }],
-  ["circle", { cx: "9", cy: "7", r: "4", key: "nufk8" }],
-  ["line", { x1: "22", x2: "16", y1: "11", y2: "11", key: "1shjgl" }]
+  ["path", { d: "M16 3.128a4 4 0 0 1 0 7.744", key: "16gr8j" }],
+  ["path", { d: "M22 21v-2a4 4 0 0 0-3-3.87", key: "kshegd" }],
+  ["circle", { cx: "9", cy: "7", r: "4", key: "nufk8" }]
 ];
-const UserMinus = createLucideIcon("user-minus", __iconNode$2);
+const Users = createLucideIcon("users", __iconNode$2);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -43272,12 +43675,10 @@ const UserMinus = createLucideIcon("user-minus", __iconNode$2);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$1 = [
-  ["path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", key: "1yyitq" }],
-  ["path", { d: "M16 3.128a4 4 0 0 1 0 7.744", key: "16gr8j" }],
-  ["path", { d: "M22 21v-2a4 4 0 0 0-3-3.87", key: "kshegd" }],
-  ["circle", { cx: "9", cy: "7", r: "4", key: "nufk8" }]
+  ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
+  ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
 ];
-const Users = createLucideIcon("users", __iconNode$1);
+const X = createLucideIcon("x", __iconNode$1);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -43285,13 +43686,19 @@ const Users = createLucideIcon("users", __iconNode$1);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode = [
-  ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
-  ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
+  [
+    "path",
+    {
+      d: "M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z",
+      key: "1xq2db"
+    }
+  ]
 ];
-const X = createLucideIcon("x", __iconNode);
+const Zap = createLucideIcon("zap", __iconNode);
 const NAV_LINKS = [
   { to: "/dashboard", label: "Dashboard", icon: Radar },
-  { to: "/networks", label: "Networks", icon: Network }
+  { to: "/networks", label: "Networks", icon: Network },
+  { to: "/evolution", label: "Evolution", icon: GitBranch }
 ];
 function Layout() {
   const { clear } = useInternetIdentity();
@@ -65744,6 +66151,109 @@ function HistoryChart({
     ) })
   ] });
 }
+const RULE_STATUS_META$1 = {
+  active: {
+    label: "Active",
+    badge: "border-rule-active/40 bg-rule-active/10 text-rule-active",
+    dot: "bg-rule-active"
+  },
+  trial: {
+    label: "Trial",
+    badge: "border-rule-trial/40 bg-rule-trial/10 text-rule-trial",
+    dot: "bg-rule-trial"
+  },
+  retired: {
+    label: "Retired",
+    badge: "border-rule-retired/40 bg-rule-retired/10 text-rule-retired",
+    dot: "bg-rule-retired"
+  }
+};
+function GoverningRulesCard({
+  rules,
+  domain,
+  loading
+}) {
+  const normalized = domain.trim().toLowerCase();
+  const governing = rules.filter(
+    (rule) => rule.domain.trim().toLowerCase() === normalized || rule.domain.trim().toLowerCase().includes(normalized) || normalized.includes(rule.domain.trim().toLowerCase())
+  );
+  const shown = governing.length > 0 ? governing : rules;
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { className: "gap-3 py-5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(CardHeader, { className: "px-5 py-0", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(CardTitle, { className: "flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Braces, { className: "size-4 text-rule-active" }),
+        "Governing rules"
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(CardDescription, { children: [
+        "Rule versions from the evolution core that govern this agent's",
+        " ",
+        domain,
+        " behavior."
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { className: "px-5", children: loading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-3", children: [0, 1, 2].map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-14 rounded-lg" }, `rule-skel-${i}`)) }) : shown.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "No governing rules registered yet." }) : /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "space-y-3", children: shown.map((rule, index2) => {
+      const meta = RULE_STATUS_META$1[rule.status];
+      const positive = rule.contribution >= 0;
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "li",
+        {
+          className: "rounded-lg border border-rule-active/25 bg-rule-active/5 p-3",
+          "data-ocid": `agent.rule.item.${index2}`,
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between gap-3", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex min-w-0 items-center gap-2.5", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex size-8 shrink-0 items-center justify-center rounded-md border border-rule-active/40 bg-rule-active/10 font-mono text-xs font-bold text-rule-active", children: [
+                  "#",
+                  rule.id.toString()
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "truncate font-display text-sm font-semibold text-foreground", children: rule.domain }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "truncate font-mono text-[10px] text-muted-foreground", children: [
+                    "v",
+                    rule.version.toString(),
+                    " · E",
+                    rule.createdEpoch.toString()
+                  ] })
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                Badge,
+                {
+                  variant: "outline",
+                  className: cn("gap-1.5 border-transparent", meta.badge),
+                  "data-ocid": `agent.rule.status.${index2}`,
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cn("size-1.5 rounded-full", meta.dot) }),
+                    meta.label
+                  ]
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 truncate font-mono text-xs text-muted-foreground", children: rule.body }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-2 flex items-center justify-between border-t border-rule-active/15 pt-2", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] font-medium uppercase tracking-wider text-muted-foreground", children: "Contribution" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "span",
+                {
+                  className: cn(
+                    "font-mono text-xs font-semibold tabular-nums",
+                    positive ? "text-trade-buy" : "text-trade-sell"
+                  ),
+                  children: [
+                    positive ? "+" : "",
+                    (rule.contribution * 100).toFixed(1),
+                    "%"
+                  ]
+                }
+              )
+            ] })
+          ]
+        },
+        rule.id.toString()
+      );
+    }) }) })
+  ] });
+}
 function AgentDetailSkeleton() {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mx-auto w-full max-w-7xl px-4 py-8 md:px-8", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 flex items-center gap-3", children: [
@@ -65767,6 +66277,7 @@ function AgentDetail() {
   const { data: learning, isLoading: learningLoading } = useAgentLearning(id2);
   const { data: trades, isLoading: tradesLoading } = useAgentTrades(id2);
   const { data: networks, isLoading: networksLoading } = useNetworks();
+  const { data: rules, isLoading: rulesLoading } = useRules();
   const { spotlightAgentId: spotlightAgentId2, setSpotlight } = useSimulationState();
   const isSpotlighted = spotlightAgentId2 === id2;
   if (isLoading) {
@@ -65954,6 +66465,14 @@ function AgentDetail() {
         }
       )
     ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-6", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      GoverningRulesCard,
+      {
+        rules: rules ?? [],
+        domain: agent.strategy.name,
+        loading: rulesLoading
+      }
+    ) }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 grid gap-6 lg:grid-cols-2", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         LineageCard,
@@ -80433,6 +80952,176 @@ function NetworksPanel({
     )) })
   ] }) });
 }
+function CoreStatusCard({
+  metrics,
+  loading
+}) {
+  const coreStatus = (metrics == null ? void 0 : metrics.coreStatus) ?? "unknown";
+  const statusMeta = coreStatus === "active" ? {
+    dot: "bg-state-alive glow-alive",
+    text: "text-state-alive",
+    label: "Running"
+  } : coreStatus === "conserving" ? {
+    dot: "bg-continuation-conserving glow-continuation-conserving",
+    text: "text-continuation-conserving",
+    label: "Conserving"
+  } : {
+    dot: "bg-state-dormant glow-dormant",
+    text: "text-state-dormant",
+    label: "Paused"
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "border-border bg-card shadow-subtle", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "flex flex-col gap-4 p-5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex size-8 items-center justify-center rounded-md border border-orchestrate/40 bg-orchestrate/10 text-orchestrate", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Cpu, { className: "size-4" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-base font-semibold text-foreground", children: "Evolution Core" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: "Self-rewriting rule engine status" })
+      ] })
+    ] }),
+    loading ? /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-24 w-full" }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          className: "flex items-center gap-3 rounded-lg border border-border bg-background p-3",
+          "data-ocid": "dashboard.core_status",
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "span",
+              {
+                className: cn("size-3 rounded-full", statusMeta.dot),
+                "aria-hidden": "true"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "p",
+                {
+                  className: cn(
+                    "font-display text-sm font-semibold",
+                    statusMeta.text
+                  ),
+                  children: statusMeta.label
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-muted-foreground", children: [
+                "Epoch ",
+                (metrics == null ? void 0 : metrics.epoch.toString()) ?? "—"
+              ] })
+            ] })
+          ]
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-md border border-border bg-background px-3 py-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[10px] font-medium uppercase tracking-wider text-muted-foreground", children: "Budget spent this epoch" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-0.5 font-mono text-sm font-semibold tabular-nums text-budget", children: metrics ? formatInteger(Number(metrics.budgetState.spent)) : "—" })
+      ] })
+    ] })
+  ] }) });
+}
+const FEED_KIND_META = {
+  observation: {
+    label: "Observation",
+    dot: "bg-orchestrate",
+    text: "text-orchestrate",
+    icon: Activity
+  },
+  mutation: {
+    label: "Mutation",
+    dot: "bg-orchestrate-mutate",
+    text: "text-orchestrate-mutate",
+    icon: Zap
+  },
+  trial: {
+    label: "Trial",
+    dot: "bg-rule-trial",
+    text: "text-rule-trial",
+    icon: FlaskConical
+  },
+  promotion: {
+    label: "Promotion",
+    dot: "bg-orchestrate-retain",
+    text: "text-orchestrate-retain",
+    icon: TrendingUp
+  },
+  retirement: {
+    label: "Retirement",
+    dot: "bg-orchestrate-discard",
+    text: "text-orchestrate-discard",
+    icon: TrendingDown
+  }
+};
+function OrchestrationFeed({
+  entries,
+  loading
+}) {
+  const recent = entries.slice(0, 6);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "border-border bg-card shadow-subtle", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "p-5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex size-8 items-center justify-center rounded-md border border-orchestrate/40 bg-orchestrate/10 text-orchestrate", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Activity, { className: "size-4" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-base font-semibold text-foreground", children: "Orchestration Activity" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: "Recent rule mutations and promotions from the evolution core" })
+      ] })
+    ] }),
+    loading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 space-y-3", children: [0, 1, 2].map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-12 w-full" }, `feed-skel-${i}`)) }) : recent.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: "mt-4 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-10 text-center",
+        "data-ocid": "dashboard.orchestration_empty_state",
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Activity, { className: "size-5 text-muted-foreground" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "No orchestration activity yet. Advance an epoch in the Evolution Core." })
+        ]
+      }
+    ) : /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "mt-4 space-y-2.5", children: recent.map((entry, i) => {
+      const meta = FEED_KIND_META[entry.kind];
+      const Icon2 = meta.icon;
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "li",
+        {
+          "data-ocid": `dashboard.orchestration.item.${i}`,
+          className: "flex items-center gap-3 rounded-lg border border-border bg-background p-3",
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "span",
+              {
+                className: cn(
+                  "flex size-7 shrink-0 items-center justify-center rounded-md bg-current/10",
+                  meta.text
+                ),
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(Icon2, { className: "size-3.5" })
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0 flex-1", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "span",
+                  {
+                    className: cn(
+                      "text-xs font-semibold uppercase tracking-wide",
+                      meta.text
+                    ),
+                    children: meta.label
+                  }
+                ),
+                entry.ruleId !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-mono text-[10px] text-muted-foreground", children: [
+                  "rule #",
+                  entry.ruleId.toString()
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-0.5 truncate font-mono text-xs text-foreground", children: entry.detail })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "shrink-0 font-mono text-[10px] text-muted-foreground", children: [
+              "E",
+              entry.epoch.toString()
+            ] })
+          ]
+        },
+        `${entry.epoch.toString()}-${i}`
+      );
+    }) })
+  ] }) });
+}
 function Dashboard() {
   const navigate = useNavigate({ from: "/dashboard" });
   const search = useSearch({ from: "/dashboard" });
@@ -80441,6 +81130,8 @@ function Dashboard() {
   const { data: learningRecords, isLoading: learningLoading } = useLearningRecords();
   const { data: trades, isLoading: tradesLoading } = useTrades();
   const { data: networks, isLoading: networksLoading } = useNetworks();
+  const { data: coreMetrics, isLoading: coreLoading } = useCoreMetrics();
+  const { data: orchestration, isLoading: orchestrationLoading } = useOrchestrationLog();
   const { running: running2, spotlightAgentId: spotlightAgentId2, pause, resume, reset, setSpotlight } = useSimulationState();
   const updateSearch = (patch) => {
     void navigate({ search: { ...search, ...patch } });
@@ -80534,7 +81225,7 @@ function Dashboard() {
         ] })
       ] })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         StatCard,
         {
@@ -80574,7 +81265,27 @@ function Dashboard() {
           accent: "text-state-dormant",
           loading: statsLoading
         }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        StatCard,
+        {
+          label: "Continuation score",
+          value: coreMetrics ? `${(coreMetrics.currentScore.compositeScore * 100).toFixed(1)}%` : "—",
+          icon: Gauge,
+          accent: "text-continuation-healthy",
+          loading: coreLoading
+        }
       )
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 grid gap-6 lg:grid-cols-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CoreStatusCard, { metrics: coreMetrics, loading: coreLoading }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "lg:col-span-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        OrchestrationFeed,
+        {
+          entries: orchestration ?? [],
+          loading: orchestrationLoading
+        }
+      ) })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 flex flex-col gap-3 rounded-lg border border-border bg-card p-3 shadow-subtle md:flex-row md:items-center md:justify-between", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
@@ -80739,6 +81450,878 @@ function Dashboard() {
         loading: networksLoading
       }
     ) })
+  ] });
+}
+const GAUGE_START = 150;
+const GAUGE_SWEEP = 240;
+function polarPoint(cx2, cy, r2, angleDeg) {
+  const rad = angleDeg * Math.PI / 180;
+  return { x: cx2 + r2 * Math.cos(rad), y: cy + r2 * Math.sin(rad) };
+}
+function arcPath(cx2, cy, r2, startDeg, endDeg) {
+  const start = polarPoint(cx2, cy, r2, startDeg);
+  const end = polarPoint(cx2, cy, r2, endDeg);
+  const largeArc = endDeg - startDeg > 180 ? 1 : 0;
+  return `M ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r2} ${r2} 0 ${largeArc} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)}`;
+}
+function scoreColor(score) {
+  if (score >= 70) return "text-continuation-healthy";
+  if (score >= 45) return "text-continuation-conserving";
+  return "text-continuation-critical";
+}
+function ContinuationGauge({
+  score,
+  loading
+}) {
+  const value = (score == null ? void 0 : score.compositeScore) ?? 0;
+  const percent2 = Math.min(100, Math.max(0, value * 100));
+  const needleAngle = GAUGE_START + percent2 / 100 * GAUGE_SWEEP;
+  const cx2 = 100;
+  const cy = 100;
+  const r2 = 78;
+  const needle = polarPoint(cx2, cy, r2 - 14, needleAngle);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "border-border bg-card shadow-subtle", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "flex flex-col gap-4 p-5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex size-8 items-center justify-center rounded-md border border-continuation-healthy/40 bg-continuation-healthy/10 text-continuation-healthy", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Gauge, { className: "size-4" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-base font-semibold text-foreground", children: "Continuation Score" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: "Composite survival metric across the swarm" })
+      ] })
+    ] }),
+    loading ? /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-44 w-full" }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col items-center", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          className: "relative w-full max-w-[260px] animate-epoch-pulse rounded-full",
+          "data-ocid": "evolution.gauge",
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("svg", { viewBox: "0 0 200 150", className: "w-full", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("title", { children: "Continuation score gauge" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("defs", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "linearGradient",
+                {
+                  id: "gauge-gradient",
+                  x1: "0",
+                  y1: "0",
+                  x2: "1",
+                  y2: "0",
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "stop",
+                      {
+                        offset: "0%",
+                        stopColor: "oklch(var(--continuation-critical))"
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "stop",
+                      {
+                        offset: "50%",
+                        stopColor: "oklch(var(--continuation-conserving))"
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "stop",
+                      {
+                        offset: "100%",
+                        stopColor: "oklch(var(--continuation-healthy))"
+                      }
+                    )
+                  ]
+                }
+              ) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "path",
+                {
+                  d: arcPath(cx2, cy, r2, GAUGE_START, GAUGE_START + GAUGE_SWEEP),
+                  fill: "none",
+                  stroke: "oklch(var(--border))",
+                  strokeWidth: "12",
+                  strokeLinecap: "round"
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "path",
+                {
+                  d: arcPath(
+                    cx2,
+                    cy,
+                    r2,
+                    GAUGE_START,
+                    GAUGE_START + percent2 / 100 * GAUGE_SWEEP
+                  ),
+                  fill: "none",
+                  stroke: "url(#gauge-gradient)",
+                  strokeWidth: "12",
+                  strokeLinecap: "round"
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "line",
+                {
+                  x1: cx2,
+                  y1: cy,
+                  x2: needle.x,
+                  y2: needle.y,
+                  stroke: "oklch(var(--foreground))",
+                  strokeWidth: "3",
+                  strokeLinecap: "round"
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: cx2, cy, r: "6", fill: "oklch(var(--foreground))" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute inset-x-0 bottom-0 flex flex-col items-center", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "span",
+                {
+                  className: cn(
+                    "font-mono text-4xl font-bold tabular-nums",
+                    scoreColor(percent2)
+                  ),
+                  children: percent2.toFixed(1)
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] font-medium uppercase tracking-wider text-muted-foreground", children: "composite" })
+            ] })
+          ]
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 grid w-full grid-cols-3 gap-2", children: [
+        { label: "Survival", value: (score == null ? void 0 : score.survival) ?? 0 },
+        { label: "Reserves", value: (score == null ? void 0 : score.reserves) ?? 0 },
+        { label: "Uptime", value: (score == null ? void 0 : score.uptime) ?? 0 }
+      ].map(({ label, value: v2 }) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          className: "rounded-md border border-border bg-background px-2 py-2 text-center",
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[10px] font-medium uppercase tracking-wider text-muted-foreground", children: label }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "p",
+              {
+                className: cn(
+                  "mt-0.5 font-mono text-sm font-semibold tabular-nums",
+                  scoreColor(v2 * 100)
+                ),
+                children: (v2 * 100).toFixed(1)
+              }
+            )
+          ]
+        },
+        label
+      )) })
+    ] })
+  ] }) });
+}
+function BudgetBurnDown({
+  perEpoch,
+  spent,
+  remaining,
+  loading
+}) {
+  const total = Number(perEpoch);
+  const spentNum = Number(spent);
+  const remainingNum = Number(remaining);
+  const pct = total > 0 ? spentNum / total * 100 : 0;
+  const threshold2 = 80;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "border-border bg-card shadow-subtle", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "flex flex-col gap-4 p-5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex size-8 items-center justify-center rounded-md border border-budget/40 bg-budget/10 text-budget", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Coins, { className: "size-4" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-base font-semibold text-foreground", children: "Resource Budget" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: "Per-epoch burn-down against the resource cap" })
+      ] })
+    ] }),
+    loading ? /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-40 w-full" }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-4", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-end justify-between", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[10px] font-medium uppercase tracking-wider text-muted-foreground", children: "Spent this epoch" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-mono text-3xl font-bold tabular-nums text-budget", children: formatInteger(spentNum) })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-right", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[10px] font-medium uppercase tracking-wider text-muted-foreground", children: "Remaining" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-mono text-lg font-semibold tabular-nums text-foreground", children: formatInteger(remainingNum) })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-3 w-full overflow-hidden rounded-full bg-muted", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            className: cn(
+              "h-full rounded-full transition-all",
+              pct >= threshold2 ? "bg-continuation-critical" : "bg-budget"
+            ),
+            style: { width: `${Math.min(100, pct)}%` }
+          }
+        ) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            className: "absolute -top-1 bottom-0 w-0.5 bg-warning",
+            style: { left: `${threshold2}%` },
+            title: "Threshold"
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between text-xs", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex items-center gap-1.5 text-muted-foreground", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "size-2 rounded-full bg-budget" }),
+          "Spent · ",
+          pct.toFixed(1),
+          "%"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex items-center gap-1.5 text-muted-foreground", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "size-2 rounded-full bg-warning" }),
+          "Threshold · ",
+          threshold2,
+          "%"
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-md border border-border bg-background p-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[10px] font-medium uppercase tracking-wider text-muted-foreground", children: "Epoch cap" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-0.5 font-mono text-sm font-semibold tabular-nums text-foreground", children: [
+          formatInteger(total),
+          " resource units"
+        ] })
+      ] })
+    ] })
+  ] }) });
+}
+function CoreParameters({
+  metrics,
+  loading
+}) {
+  const params = [
+    {
+      label: "Continuation metric",
+      value: metrics ? `${(metrics.currentScore.compositeScore * 100).toFixed(1)}%` : "—",
+      icon: Gauge,
+      accent: "text-continuation-healthy"
+    },
+    {
+      label: "Budget cap",
+      value: metrics ? formatInteger(Number(metrics.budgetState.perEpoch)) : "—",
+      icon: Coins,
+      accent: "text-budget"
+    },
+    {
+      label: "Epoch",
+      value: metrics ? metrics.epoch.toString() : "—",
+      icon: Timer,
+      accent: "text-orchestrate"
+    },
+    {
+      label: "Core status",
+      value: metrics ? metrics.coreStatus : "—",
+      icon: Cpu,
+      accent: "text-state-evolving"
+    }
+  ];
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "border-border bg-card shadow-subtle", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "flex flex-col gap-4 p-5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex size-8 items-center justify-center rounded-md border border-orchestrate/40 bg-orchestrate/10 text-orchestrate", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Cpu, { className: "size-4" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-base font-semibold text-foreground", children: "Core Parameters" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: "Live configuration of the evolution engine" })
+      ] })
+    ] }),
+    loading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-3", children: [0, 1, 2, 3].map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-12 w-full" }, `param-skel-${i}`)) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "space-y-2.5", children: params.map(({ label, value, icon: Icon2, accent }) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "li",
+      {
+        className: "flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2.5",
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex min-w-0 items-center gap-2.5", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Icon2, { className: cn("size-4 shrink-0", accent) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "truncate text-sm text-muted-foreground", children: label })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "shrink-0 font-mono text-sm font-semibold tabular-nums text-foreground", children: value })
+        ]
+      },
+      label
+    )) })
+  ] }) });
+}
+const RULE_STATUS_META = {
+  active: {
+    label: "Active",
+    badge: "border-rule-active/40 bg-rule-active/10 text-rule-active",
+    dot: "bg-rule-active"
+  },
+  trial: {
+    label: "Trial",
+    badge: "border-rule-trial/40 bg-rule-trial/10 text-rule-trial",
+    dot: "bg-rule-trial"
+  },
+  retired: {
+    label: "Retired",
+    badge: "border-rule-retired/40 bg-rule-retired/10 text-rule-retired",
+    dot: "bg-rule-retired"
+  }
+};
+function RuleRegistry({
+  rules,
+  loading
+}) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "border-border bg-card shadow-subtle", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "p-5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex size-8 items-center justify-center rounded-md border border-rule-active/40 bg-rule-active/10 text-rule-active", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Braces, { className: "size-4" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-base font-semibold text-foreground", children: "Rule Registry" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: "Governing rules and their measured contribution to continuation" })
+      ] })
+    ] }),
+    loading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 space-y-3", children: [0, 1, 2, 3].map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-12 w-full" }, `rule-skel-${i}`)) }) : rules.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: "mt-4 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-10 text-center",
+        "data-ocid": "evolution.rules_empty_state",
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Braces, { className: "size-5 text-muted-foreground" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "No rules registered yet. Advance an epoch to seed the registry." })
+        ]
+      }
+    ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Table, { "data-ocid": "evolution.rules_table", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(TableHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(TableRow, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(TableHead, { children: "ID" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(TableHead, { children: "Domain" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(TableHead, { children: "Rule" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(TableHead, { className: "text-right", children: "Version" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(TableHead, { children: "Status" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(TableHead, { className: "text-right", children: "Contribution" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(TableHead, { className: "text-right", children: "Epoch" })
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(TableBody, { children: rules.map((rule, i) => {
+        const meta = RULE_STATUS_META[rule.status];
+        const positive = rule.contribution >= 0;
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          TableRow,
+          {
+            "data-ocid": `evolution.rule.row.${i}`,
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(TableCell, { className: "font-mono text-xs text-muted-foreground", children: [
+                "#",
+                rule.id.toString()
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "font-medium text-foreground", children: rule.domain }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "max-w-[260px]", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "block truncate font-mono text-xs text-muted-foreground", children: rule.body }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(TableCell, { className: "text-right font-mono tabular-nums text-muted-foreground", children: [
+                "v",
+                rule.version.toString()
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                Badge,
+                {
+                  variant: "outline",
+                  className: cn(
+                    "gap-1.5 border-transparent",
+                    meta.badge
+                  ),
+                  "data-ocid": `evolution.rule.status.${i}`,
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "span",
+                      {
+                        className: cn("size-1.5 rounded-full", meta.dot)
+                      }
+                    ),
+                    meta.label
+                  ]
+                }
+              ) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-right", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "span",
+                {
+                  className: cn(
+                    "inline-flex items-center gap-1 font-mono text-xs font-semibold tabular-nums",
+                    positive ? "text-trade-buy" : "text-trade-sell"
+                  ),
+                  children: [
+                    positive ? /* @__PURE__ */ jsxRuntimeExports.jsx(TrendingUp, { className: "size-3" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(TrendingDown, { className: "size-3" }),
+                    positive ? "+" : "",
+                    (rule.contribution * 100).toFixed(1),
+                    "%"
+                  ]
+                }
+              ) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-right font-mono tabular-nums text-muted-foreground", children: rule.createdEpoch.toString() })
+            ]
+          },
+          rule.id.toString()
+        );
+      }) })
+    ] }) })
+  ] }) });
+}
+function MutationLineage({
+  rules,
+  loading
+}) {
+  const byId = new Map(rules.map((r2) => [r2.id.toString(), r2]));
+  const depthOf = (rule) => {
+    let depth = 0;
+    let current = rule;
+    const seen = /* @__PURE__ */ new Set();
+    while ((current == null ? void 0 : current.parent) !== void 0 && !seen.has(current.id.toString())) {
+      seen.add(current.id.toString());
+      current = byId.get(current.parent.toString());
+      depth += 1;
+    }
+    return depth;
+  };
+  const nodes = rules.map((rule) => ({ rule, depth: depthOf(rule) }));
+  const maxDepth = nodes.reduce((m2, n2) => Math.max(m2, n2.depth), 0);
+  const columns = Array.from({ length: maxDepth + 1 }, (_2, depth) => ({
+    depth,
+    nodes: []
+  }));
+  for (const node of nodes) columns[node.depth].nodes.push(node);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "border-border bg-card shadow-subtle", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "p-5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex size-8 items-center justify-center rounded-md border border-orchestrate-mutate/40 bg-orchestrate-mutate/10 text-orchestrate-mutate", children: /* @__PURE__ */ jsxRuntimeExports.jsx(GitBranch, { className: "size-4" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-base font-semibold text-foreground", children: "Mutation Lineage" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: "How rules descend from their parents through mutation" })
+      ] })
+    ] }),
+    loading ? /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "mt-4 h-40 w-full" }) : rules.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: "mt-4 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-10 text-center",
+        "data-ocid": "evolution.lineage_empty_state",
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(GitBranch, { className: "size-5 text-muted-foreground" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "No mutation lineage yet. Rules branch as the core evolves." })
+        ]
+      }
+    ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex min-w-[640px] items-start gap-6", children: columns.map((col) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: "flex flex-1 flex-col gap-3",
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-[10px] font-medium uppercase tracking-wider text-muted-foreground", children: [
+            "Gen ",
+            col.depth
+          ] }),
+          col.nodes.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex h-16 items-center justify-center rounded-lg border border-dashed border-border text-xs text-muted-foreground", children: "—" }) : col.nodes.map(({ rule }, i) => {
+            const meta = RULE_STATUS_META[rule.status];
+            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "div",
+              {
+                className: "relative rounded-lg border border-orchestrate-mutate/30 bg-orchestrate-mutate/5 p-3 glow-orchestrate-mutate",
+                "data-ocid": `evolution.lineage.node.${col.depth}.${i}`,
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between gap-2", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-mono text-xs font-bold text-orchestrate-mutate", children: [
+                      "#",
+                      rule.id.toString()
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "span",
+                      {
+                        className: cn("size-1.5 rounded-full", meta.dot)
+                      }
+                    )
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 truncate text-xs font-medium text-foreground", children: rule.domain }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "truncate font-mono text-[10px] text-muted-foreground", children: [
+                    "v",
+                    rule.version.toString()
+                  ] }),
+                  rule.parent !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-2 flex items-center gap-1 text-[10px] text-muted-foreground", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { className: "size-3 text-orchestrate-mutate" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-mono", children: [
+                      "parent #",
+                      rule.parent.toString()
+                    ] })
+                  ] })
+                ]
+              },
+              rule.id.toString()
+            );
+          })
+        ]
+      },
+      `lineage-gen-${col.depth}`
+    )) }) })
+  ] }) });
+}
+const KIND_META = {
+  observation: {
+    label: "Observation",
+    dot: "bg-orchestrate",
+    text: "text-orchestrate",
+    icon: Activity
+  },
+  mutation: {
+    label: "Mutation",
+    dot: "bg-orchestrate-mutate",
+    text: "text-orchestrate-mutate",
+    icon: Zap
+  },
+  trial: {
+    label: "Trial",
+    dot: "bg-rule-trial",
+    text: "text-rule-trial",
+    icon: FlaskConical
+  },
+  promotion: {
+    label: "Promotion",
+    dot: "bg-orchestrate-retain",
+    text: "text-orchestrate-retain",
+    icon: TrendingUp
+  },
+  retirement: {
+    label: "Retirement",
+    dot: "bg-orchestrate-discard",
+    text: "text-orchestrate-discard",
+    icon: TrendingDown
+  }
+};
+function OrchestrationLog({
+  entries,
+  loading
+}) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "border-border bg-card shadow-subtle", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "p-5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex size-8 items-center justify-center rounded-md border border-orchestrate/40 bg-orchestrate/10 text-orchestrate", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Activity, { className: "size-4" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-base font-semibold text-foreground", children: "Orchestration Log" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: "Live activity of the evolution engine" })
+      ] })
+    ] }),
+    loading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 space-y-3", children: [0, 1, 2, 3].map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-12 w-full" }, `log-skel-${i}`)) }) : entries.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: "mt-4 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-10 text-center",
+        "data-ocid": "evolution.log_empty_state",
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Activity, { className: "size-5 text-muted-foreground" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "No orchestration activity recorded yet." })
+        ]
+      }
+    ) : /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "mt-4 max-h-[420px] space-y-2.5 overflow-y-auto pr-1", children: entries.map((entry, i) => {
+      const meta = KIND_META[entry.kind];
+      const Icon2 = meta.icon;
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "li",
+        {
+          "data-ocid": `evolution.log.item.${i}`,
+          className: "flex items-start gap-3 rounded-lg border border-border bg-background p-3",
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "span",
+              {
+                className: cn(
+                  "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md",
+                  meta.text,
+                  "bg-current/10"
+                ),
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(Icon2, { className: "size-3.5" })
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0 flex-1", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "span",
+                  {
+                    className: cn(
+                      "text-xs font-semibold uppercase tracking-wide",
+                      meta.text
+                    ),
+                    children: meta.label
+                  }
+                ),
+                entry.ruleId !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-mono text-[10px] text-muted-foreground", children: [
+                  "rule #",
+                  entry.ruleId.toString()
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-0.5 truncate font-mono text-xs text-foreground", children: entry.detail }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-1 flex items-center gap-2 text-[10px] text-muted-foreground", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-mono", children: [
+                  "E",
+                  entry.epoch.toString()
+                ] }),
+                entry.continuationDelta !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "span",
+                  {
+                    className: cn(
+                      "font-mono font-semibold",
+                      entry.continuationDelta >= 0 ? "text-trade-buy" : "text-trade-sell"
+                    ),
+                    children: [
+                      entry.continuationDelta >= 0 ? "+" : "",
+                      (entry.continuationDelta * 100).toFixed(1),
+                      "%"
+                    ]
+                  }
+                )
+              ] })
+            ] })
+          ]
+        },
+        `${entry.epoch.toString()}-${i}`
+      );
+    }) })
+  ] }) });
+}
+function ContinuationHistory({
+  history,
+  loading
+}) {
+  const data = history.map((h2, i) => ({
+    index: String(i),
+    value: h2.compositeScore * 100
+  }));
+  const config2 = {
+    value: {
+      label: "Continuation",
+      color: "oklch(var(--continuation-healthy))"
+    }
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "border-border bg-card shadow-subtle", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "p-5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex size-8 items-center justify-center rounded-md border border-continuation-healthy/40 bg-continuation-healthy/10 text-continuation-healthy", children: /* @__PURE__ */ jsxRuntimeExports.jsx(TrendingUp, { className: "size-4" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-base font-semibold text-foreground", children: "Continuation History" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: "Composite score across recorded epochs" })
+      ] })
+    ] }),
+    loading ? /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "mt-4 h-40 w-full" }) : data.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: "mt-4 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-10 text-center",
+        "data-ocid": "evolution.history_empty_state",
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(TrendingUp, { className: "size-5 text-muted-foreground" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "No continuation history recorded yet." })
+        ]
+      }
+    ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      ChartContainer,
+      {
+        config: config2,
+        className: "aspect-[16/5] w-full",
+        "data-ocid": "evolution.history_chart",
+        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          AreaChart,
+          {
+            data,
+            margin: { left: 4, right: 8, top: 8, bottom: 0 },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("defs", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "linearGradient",
+                {
+                  id: "fill-continuation",
+                  x1: "0",
+                  y1: "0",
+                  x2: "0",
+                  y2: "1",
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "stop",
+                      {
+                        offset: "5%",
+                        stopColor: "oklch(var(--continuation-healthy))",
+                        stopOpacity: 0.35
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "stop",
+                      {
+                        offset: "95%",
+                        stopColor: "oklch(var(--continuation-healthy))",
+                        stopOpacity: 0.02
+                      }
+                    )
+                  ]
+                }
+              ) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(CartesianGrid, { vertical: false, strokeDasharray: "3 3" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                XAxis,
+                {
+                  dataKey: "index",
+                  tickLine: false,
+                  axisLine: false,
+                  tickMargin: 8,
+                  tickFormatter: (v2) => `E${v2}`
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                YAxis,
+                {
+                  domain: [0, 100],
+                  tickLine: false,
+                  axisLine: false,
+                  width: 40,
+                  tickFormatter: (v2) => `${v2}`
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                ChartTooltip,
+                {
+                  cursor: false,
+                  content: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    ChartTooltipContent,
+                    {
+                      labelFormatter: (label) => `Epoch ${label}`,
+                      formatter: (value) => `${Number(value).toFixed(1)}`
+                    }
+                  )
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                Area,
+                {
+                  dataKey: "value",
+                  type: "monotone",
+                  stroke: "oklch(var(--continuation-healthy))",
+                  strokeWidth: 2,
+                  fill: "url(#fill-continuation)"
+                }
+              )
+            ]
+          }
+        )
+      }
+    ) })
+  ] }) });
+}
+function EvolutionCore() {
+  const { data: metrics, isLoading: metricsLoading } = useCoreMetrics();
+  const { data: rules, isLoading: rulesLoading } = useRules();
+  const { data: log2, isLoading: logLoading } = useOrchestrationLog();
+  const advanceEpoch = useAdvanceEpoch();
+  const resetCore = useResetEvolutionCore();
+  const coreStatus = (metrics == null ? void 0 : metrics.coreStatus) ?? "unknown";
+  const statusMeta = coreStatus === "active" ? {
+    dot: "bg-state-alive glow-alive",
+    text: "text-state-alive",
+    label: "Running"
+  } : coreStatus === "conserving" ? {
+    dot: "bg-continuation-conserving glow-continuation-conserving",
+    text: "text-continuation-conserving",
+    label: "Conserving"
+  } : {
+    dot: "bg-state-dormant glow-dormant",
+    text: "text-state-dormant",
+    label: "Paused"
+  };
+  const handleAdvance = () => {
+    advanceEpoch.mutate(void 0, {
+      onSuccess: () => {
+        ue.success("Epoch advanced");
+      },
+      onError: () => {
+        ue.error("Could not advance the epoch");
+      }
+    });
+  };
+  const handleReset = () => {
+    resetCore.mutate(void 0, {
+      onSuccess: () => {
+        ue.success("Evolution core reset to seed rules");
+      },
+      onError: () => {
+        ue.error("Could not reset the evolution core");
+      }
+    });
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mx-auto w-full max-w-7xl px-4 py-8 md:px-8", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { className: "size-3.5" }),
+          "Nexus Swarm Control"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "mt-1 font-display text-3xl font-bold tracking-tight text-foreground", children: "Evolution Core" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 max-w-xl text-sm text-muted-foreground", children: "The self-rewriting rule engine that governs the swarm. Monitor continuation, budget burn-down, and the orchestration of rule mutations across epochs." })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            className: "flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5",
+            "data-ocid": "evolution.status_indicator",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cn("size-2 rounded-full", statusMeta.dot) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cn("text-xs font-medium", statusMeta.text), children: statusMeta.label }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-mono text-xs text-muted-foreground", children: [
+                "· E",
+                (metrics == null ? void 0 : metrics.epoch.toString()) ?? "—"
+              ] })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          Button,
+          {
+            onClick: handleAdvance,
+            disabled: advanceEpoch.isPending,
+            "data-ocid": "evolution.advance_button",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { className: "size-4" }),
+              advanceEpoch.isPending ? "Advancing…" : "Advance Epoch"
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(AlertDialog, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(AlertDialogTrigger, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Button, { variant: "outline", "data-ocid": "evolution.reset_button", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(RotateCcw, { className: "size-4" }),
+            " Reset Core"
+          ] }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(AlertDialogContent, { "data-ocid": "evolution.reset_dialog", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(AlertDialogHeader, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(AlertDialogTitle, { children: "Reset the Evolution Core?" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(AlertDialogDescription, { children: "This restores the seed rules and clears the orchestration state. Agents, trades, treasury, and networks are left untouched." })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(AlertDialogFooter, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(AlertDialogCancel, { "data-ocid": "evolution.reset_cancel", children: "Cancel" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                AlertDialogAction,
+                {
+                  onClick: handleReset,
+                  "data-ocid": "evolution.reset_confirm",
+                  children: "Reset Core"
+                }
+              )
+            ] })
+          ] })
+        ] })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 grid gap-6 lg:grid-cols-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        ContinuationGauge,
+        {
+          score: metrics == null ? void 0 : metrics.currentScore,
+          loading: metricsLoading
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        BudgetBurnDown,
+        {
+          perEpoch: (metrics == null ? void 0 : metrics.budgetState.perEpoch) ?? 0n,
+          spent: (metrics == null ? void 0 : metrics.budgetState.spent) ?? 0n,
+          remaining: (metrics == null ? void 0 : metrics.budgetState.remaining) ?? 0n,
+          loading: metricsLoading
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CoreParameters, { metrics, loading: metricsLoading })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-6", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      ContinuationHistory,
+      {
+        history: (metrics == null ? void 0 : metrics.history) ?? [],
+        loading: metricsLoading
+      }
+    ) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 grid gap-6 lg:grid-cols-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "lg:col-span-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(RuleRegistry, { rules: rules ?? [], loading: rulesLoading }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(OrchestrationLog, { entries: log2 ?? [], loading: logLoading })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-6", children: /* @__PURE__ */ jsxRuntimeExports.jsx(MutationLineage, { rules: rules ?? [], loading: rulesLoading }) })
   ] });
 }
 const SURVIVAL_GOALS = [
@@ -81740,12 +83323,18 @@ const networksRoute = createRoute({
   path: "/networks",
   component: Networks
 });
+const evolutionRoute = createRoute({
+  getParentRoute: () => protectedLayout,
+  path: "/evolution",
+  component: EvolutionCore
+});
 const routeTree = rootRoute.addChildren([
   landingRoute,
   protectedLayout.addChildren([
     dashboardRoute,
     agentDetailRoute,
-    networksRoute
+    networksRoute,
+    evolutionRoute
   ])
 ]);
 const router = createRouter({ routeTree });

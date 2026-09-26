@@ -34,8 +34,26 @@ export interface Budget {
   'category' : string,
 }
 export interface BudgetInput { 'monthlyLimit' : number, 'category' : string }
+export interface BudgetState {
+  'perEpoch' : bigint,
+  'spent' : bigint,
+  'remaining' : bigint,
+}
 export interface Cell { 'value' : Value, 'name' : string }
+export interface ContinuationScore {
+  'reserves' : number,
+  'survival' : number,
+  'uptime' : number,
+  'compositeScore' : number,
+}
 export interface Contribution { 'date' : Timestamp, 'amount' : number }
+export interface CoreMetrics {
+  'history' : Array<ContinuationScore>,
+  'epoch' : bigint,
+  'budgetState' : BudgetState,
+  'currentScore' : ContinuationScore,
+  'coreStatus' : string,
+}
 export type Error = { 'FrontendOriginsNotConfigured' : null } |
   {
     'MixedSsoSources' : {
@@ -80,9 +98,34 @@ export interface Network {
   'memberAgentIds' : Array<bigint>,
   'sharedStrategyPool' : Array<Strategy>,
 }
+export type OrchestrationKind = { 'trial' : null } |
+  { 'promotion' : null } |
+  { 'observation' : null } |
+  { 'retirement' : null } |
+  { 'mutation' : null };
+export interface OrchestrationLogEntry {
+  'ruleId' : [] | [bigint],
+  'kind' : OrchestrationKind,
+  'continuationDelta' : [] | [number],
+  'detail' : string,
+  'epoch' : bigint,
+}
 export interface Result { 'hasMore' : boolean, 'rows' : Array<Array<Cell>> }
 export type Result__1 = { 'ok' : null } |
   { 'err' : Error };
+export interface RuleRecord {
+  'id' : bigint,
+  'status' : RuleStatus,
+  'domain' : string,
+  'body' : string,
+  'version' : bigint,
+  'contribution' : number,
+  'parent' : [] | [bigint],
+  'createdEpoch' : bigint,
+}
+export type RuleStatus = { 'trial' : null } |
+  { 'active' : null } |
+  { 'retired' : null };
 export interface SavingsGoal {
   'id' : bigint,
   'contributions' : Array<Contribution>,
@@ -166,6 +209,7 @@ export interface _SERVICE {
   'addContribution' : ActorMethod<[bigint, number], undefined>,
   'addSavingsGoal' : ActorMethod<[SavingsGoalInput], bigint>,
   'addTransaction' : ActorMethod<[TransactionInput], bigint>,
+  'advanceEpoch' : ActorMethod<[], CoreMetrics>,
   'advanceTick' : ActorMethod<[], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createNetwork' : ActorMethod<[string], bigint>,
@@ -185,7 +229,9 @@ export interface _SERVICE {
   'getBudget' : ActorMethod<[bigint], [] | [Budget]>,
   'getCallerProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getCoreMetrics' : ActorMethod<[], CoreMetrics>,
   'getNetwork' : ActorMethod<[bigint], [] | [Network]>,
+  'getRule' : ActorMethod<[bigint], [] | [RuleRecord]>,
   'getSavingsGoal' : ActorMethod<[bigint], [] | [SavingsGoal]>,
   'getSwarmStats' : ActorMethod<[], SwarmStats>,
   'getTransaction' : ActorMethod<[bigint], [] | [Transaction]>,
@@ -197,6 +243,8 @@ export interface _SERVICE {
   'listBudgets' : ActorMethod<[], Array<Budget>>,
   'listLearningRecords' : ActorMethod<[], Array<LearningRecord>>,
   'listNetworks' : ActorMethod<[], Array<Network>>,
+  'listOrchestrationLog' : ActorMethod<[], Array<OrchestrationLogEntry>>,
+  'listRules' : ActorMethod<[], Array<RuleRecord>>,
   'listSavingsGoals' : ActorMethod<[], Array<SavingsGoal>>,
   'listTrades' : ActorMethod<[], Array<TradeRecord>>,
   'listTransactions' : ActorMethod<[], Array<Transaction>>,
@@ -204,6 +252,7 @@ export interface _SERVICE {
     [bigint, bigint, Strategy, number],
     undefined
   >,
+  'resetEvolutionCore' : ActorMethod<[], undefined>,
   'resetSwarm' : ActorMethod<[], undefined>,
   'saveCallerProfile' : ActorMethod<[UserProfile], undefined>,
   'schema' : ActorMethod<[], string>,

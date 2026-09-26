@@ -78,6 +78,23 @@ export default {
           buy: "oklch(var(--trade-buy) / <alpha-value>)",
           sell: "oklch(var(--trade-sell) / <alpha-value>)",
         },
+        continuation: {
+          healthy: "oklch(var(--continuation-healthy) / <alpha-value>)",
+          conserving: "oklch(var(--continuation-conserving) / <alpha-value>)",
+          critical: "oklch(var(--continuation-critical) / <alpha-value>)",
+        },
+        rule: {
+          active: "oklch(var(--rule-active) / <alpha-value>)",
+          trial: "oklch(var(--rule-trial) / <alpha-value>)",
+          retired: "oklch(var(--rule-retired) / <alpha-value>)",
+        },
+        orchestrate: {
+          DEFAULT: "oklch(var(--orchestrate) / <alpha-value>)",
+          mutate: "oklch(var(--orchestrate-mutate) / <alpha-value>)",
+          retain: "oklch(var(--orchestrate-retain) / <alpha-value>)",
+          discard: "oklch(var(--orchestrate-discard) / <alpha-value>)",
+        },
+        budget: "oklch(var(--budget) / <alpha-value>)",
       },
       fontFamily: {
         display: ["var(--font-display)", "serif"],
@@ -123,6 +140,16 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.35" },
         },
+        "epoch-pulse": {
+          "0%": { boxShadow: "0 0 0 0 oklch(var(--continuation-healthy) / 0.45)" },
+          "70%": { boxShadow: "0 0 0 8px oklch(var(--continuation-healthy) / 0)" },
+          "100%": { boxShadow: "0 0 0 0 oklch(var(--continuation-healthy) / 0)" },
+        },
+        "mutation-flash": {
+          "0%, 100%": { opacity: "1" },
+          "35%": { opacity: "0.35" },
+          "55%": { opacity: "0.85" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -132,6 +159,8 @@ export default {
         "tick-pulse": "tick-pulse 2s ease-in-out infinite",
         "lineage-flow": "lineage-flow 1.2s linear infinite",
         "trade-flash": "trade-flash 1.6s ease-in-out infinite",
+        "epoch-pulse": "epoch-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "mutation-flash": "mutation-flash 0.9s ease-in-out infinite",
       },
     },
   },

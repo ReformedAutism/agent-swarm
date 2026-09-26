@@ -1,5 +1,11 @@
 import { AgentDetail } from "@/pages/AgentDetail";
-import type { Agent, LearningRecord, Network, TradeRecord } from "@/types";
+import type {
+  Agent,
+  LearningRecord,
+  Network,
+  RuleRecord,
+  TradeRecord,
+} from "@/types";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -11,12 +17,14 @@ let mockSpotlight: bigint | null = null;
 let mockLearning: LearningRecord[] = [];
 let mockTrades: TradeRecord[] = [];
 let mockNetworks: Network[] = [];
+let mockRules: RuleRecord[] = [];
 
 vi.mock("@/hooks/useQueries", () => ({
   useAgent: () => ({ data: mockAgent, isLoading: mockIsLoading }),
   useAgentLearning: () => ({ data: mockLearning, isLoading: false }),
   useAgentTrades: () => ({ data: mockTrades, isLoading: false }),
   useNetworks: () => ({ data: mockNetworks, isLoading: false }),
+  useRules: () => ({ data: mockRules, isLoading: false }),
   useSimulationState: () => ({
     spotlightAgentId: mockSpotlight,
     setSpotlight,
@@ -62,6 +70,7 @@ describe("AgentDetail", () => {
     mockLearning = [];
     mockTrades = [];
     mockNetworks = [];
+    mockRules = [];
     setSpotlight.mockClear();
   });
 
@@ -226,6 +235,41 @@ describe("AgentDetail", () => {
     expect(screen.getByText("Networks")).toBeInTheDocument();
     expect(
       screen.getByText(/This agent is not a member of any network yet/i),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the rule versions governing the agent's behavior", () => {
+    mockRules = [
+      {
+        id: 1n,
+        domain: "Growth",
+        body: "if reserves > 0.5 then invest",
+        version: 2n,
+        parent: 0n,
+        status: "active",
+        contribution: 0.12,
+        createdEpoch: 1n,
+      },
+    ];
+    render(<AgentDetail />);
+
+    const ruleItem = screen.getByTestId("agent.rule.item.0");
+    expect(screen.getByText("Governing rules")).toBeInTheDocument();
+    expect(within(ruleItem).getByText("Growth")).toBeInTheDocument();
+    expect(
+      within(ruleItem).getByText("if reserves > 0.5 then invest"),
+    ).toBeInTheDocument();
+    expect(within(ruleItem).getByText("v2 · E1")).toBeInTheDocument();
+    expect(within(ruleItem).getByText("Active")).toBeInTheDocument();
+    expect(within(ruleItem).getByText("+12.0%")).toBeInTheDocument();
+  });
+
+  it("shows an empty governing-rules state when no rules are registered", () => {
+    render(<AgentDetail />);
+
+    expect(screen.getByText("Governing rules")).toBeInTheDocument();
+    expect(
+      screen.getByText(/No governing rules registered yet/i),
     ).toBeInTheDocument();
   });
 });

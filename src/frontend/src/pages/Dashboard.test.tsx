@@ -3,8 +3,10 @@ import type {
   Agent,
   AgentSortKey,
   AgentStatus,
+  CoreMetrics,
   LearningRecord,
   Network,
+  OrchestrationLogEntry,
   SwarmStats,
   TradeRecord,
 } from "@/types";
@@ -23,6 +25,8 @@ let mockStats: SwarmStats | undefined;
 let mockLearning: LearningRecord[] = [];
 let mockTrades: TradeRecord[] = [];
 let mockNetworks: Network[] = [];
+let mockCoreMetrics: CoreMetrics | undefined;
+let mockOrchestration: OrchestrationLogEntry[] = [];
 let mockRunning = true;
 let mockSpotlight: bigint | null = null;
 let mockSearch: {
@@ -37,6 +41,8 @@ vi.mock("@/hooks/useQueries", () => ({
   useLearningRecords: () => ({ data: mockLearning, isLoading: false }),
   useTrades: () => ({ data: mockTrades, isLoading: false }),
   useNetworks: () => ({ data: mockNetworks, isLoading: false }),
+  useCoreMetrics: () => ({ data: mockCoreMetrics, isLoading: false }),
+  useOrchestrationLog: () => ({ data: mockOrchestration, isLoading: false }),
   useSimulationState: () => ({
     running: mockRunning,
     spotlightAgentId: mockSpotlight,
@@ -80,6 +86,8 @@ describe("Dashboard", () => {
     mockLearning = [];
     mockTrades = [];
     mockNetworks = [];
+    mockCoreMetrics = undefined;
+    mockOrchestration = [];
     mockRunning = true;
     mockSpotlight = null;
     mockSearch = { sort: "money", dir: "desc", status: "all" };
@@ -318,5 +326,82 @@ describe("Dashboard", () => {
 
     expect(screen.getByText("Networks")).toBeInTheDocument();
     expect(screen.getByText(/No networks formed yet/i)).toBeInTheDocument();
+  });
+
+  it("renders the continuation score card from core metrics", () => {
+    mockCoreMetrics = {
+      currentScore: {
+        survival: 0.9,
+        reserves: 0.6,
+        uptime: 0.8,
+        compositeScore: 0.77,
+      },
+      history: [],
+      epoch: 3n,
+      budgetState: { perEpoch: 1000n, spent: 400n, remaining: 600n },
+      coreStatus: "active",
+    };
+    render(<Dashboard />);
+
+    expect(screen.getByText("Continuation score")).toBeInTheDocument();
+    expect(screen.getByText("77.0%")).toBeInTheDocument();
+  });
+
+  it("shows the core status indicator and budget spent this epoch", () => {
+    mockCoreMetrics = {
+      currentScore: {
+        survival: 0.5,
+        reserves: 0.5,
+        uptime: 0.5,
+        compositeScore: 0.5,
+      },
+      history: [],
+      epoch: 2n,
+      budgetState: { perEpoch: 1000n, spent: 250n, remaining: 750n },
+      coreStatus: "conserving",
+    };
+    render(<Dashboard />);
+
+    expect(screen.getByText("Evolution Core")).toBeInTheDocument();
+    expect(screen.getByText("Conserving")).toBeInTheDocument();
+    expect(screen.getByText("Epoch 2")).toBeInTheDocument();
+    expect(screen.getByText("250")).toBeInTheDocument();
+  });
+
+  it("renders recent orchestration activity in the feed", () => {
+    mockOrchestration = [
+      {
+        epoch: 1n,
+        kind: "mutation",
+        ruleId: 4n,
+        detail: "Mutated conservation rule body",
+        continuationDelta: 0.05,
+      },
+      {
+        epoch: 1n,
+        kind: "promotion",
+        ruleId: 5n,
+        detail: "Promoted trial variant",
+        continuationDelta: 0.03,
+      },
+    ];
+    render(<Dashboard />);
+
+    expect(screen.getByText("Orchestration Activity")).toBeInTheDocument();
+    expect(screen.getByText("Mutation")).toBeInTheDocument();
+    expect(screen.getByText("Promotion")).toBeInTheDocument();
+    expect(
+      screen.getByText("Mutated conservation rule body"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("rule #4")).toBeInTheDocument();
+  });
+
+  it("shows an empty orchestration feed when no activity is recorded", () => {
+    render(<Dashboard />);
+
+    expect(screen.getByText("Orchestration Activity")).toBeInTheDocument();
+    expect(
+      screen.getByText(/No orchestration activity yet/i),
+    ).toBeInTheDocument();
   });
 });

@@ -148,3 +148,116 @@ export const AGENT_SORT_KEYS: AgentSortKey[] = [
   "generation",
   "status",
 ];
+
+/* ------------------------------------------------------------------ */
+/* Evolution Core                                                      */
+/*                                                                     */
+/* The Evolution Core is the self-rewriting rule engine that governs   */
+/* the swarm. These types mirror the backend `CoreMetrics`, `RuleRecord`*/
+/* and `OrchestrationLogEntry` shapes exactly.                         */
+/* ------------------------------------------------------------------ */
+
+/** Lifecycle status of a governing rule. Maps to the rule-* utilities. */
+export type RuleStatus = "active" | "trial" | "retired";
+
+/** The kind of event recorded in the orchestration activity log. */
+export type OrchestrationKind =
+  | "observation"
+  | "mutation"
+  | "trial"
+  | "promotion"
+  | "retirement";
+
+/** A single point in the continuation-score history. */
+export interface ContinuationScore {
+  survival: number;
+  reserves: number;
+  uptime: number;
+  compositeScore: number;
+}
+
+/** Per-epoch resource budget burn-down state. */
+export interface BudgetState {
+  perEpoch: bigint;
+  spent: bigint;
+  remaining: bigint;
+}
+
+/** Aggregate metrics for the Evolution Core. */
+export interface CoreMetrics {
+  currentScore: ContinuationScore;
+  history: ContinuationScore[];
+  epoch: bigint;
+  budgetState: BudgetState;
+  coreStatus: string;
+}
+
+/** A rule in the registry that governs agent behavior. */
+export interface RuleRecord {
+  id: bigint;
+  domain: string;
+  body: string;
+  version: bigint;
+  parent?: bigint;
+  status: RuleStatus;
+  contribution: number;
+  createdEpoch: bigint;
+}
+
+/** A single entry in the orchestration activity log. */
+export interface OrchestrationLogEntry {
+  epoch: bigint;
+  kind: OrchestrationKind;
+  ruleId?: bigint;
+  detail: string;
+  continuationDelta?: number;
+}
+
+/* ------------------------------------------------------------------ */
+/* Evolution Core — additional types                                   */
+/*                                                                     */
+/* Core status, trial outcomes, tunable parameters, and trial records  */
+/* that complement the core metric / rule / orchestration types above. */
+/* ------------------------------------------------------------------ */
+
+/** Lifecycle status of the Evolution Core. Maps to the core-status utilities. */
+export type CoreStatus = "active" | "conserving" | "paused";
+
+/** Outcome of a trial variant against the continuation metric. */
+export type TrialOutcome = "improved" | "neutral" | "worse";
+
+/** Weights applied to each continuation sub-metric. */
+export interface ContinuationWeights {
+  survival: number;
+  reserves: number;
+  uptime: number;
+}
+
+/** Tunable parameters of the Evolution Core. */
+export interface CoreParams {
+  continuationWeights: ContinuationWeights;
+  perEpochResourceBudget: bigint;
+  mutationRate: number;
+  trialSize: bigint;
+}
+
+/** A trial variant spawned from a rule and its measured outcome. */
+export interface TrialRecord {
+  ruleId: bigint;
+  variantBody: string;
+  outcome: TrialOutcome;
+  continuationDelta: number;
+  epoch: bigint;
+}
+
+export const CORE_STATUSES: CoreStatus[] = ["active", "conserving", "paused"];
+
+export const RULE_STATUSES: RuleStatus[] = ["active", "trial", "retired"];
+
+export const ORCHESTRATION_KINDS: OrchestrationKind[] = [
+  "observation",
+  "mutation",
+  "trial",
+  "promotion",
+  "retirement",
+];

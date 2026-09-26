@@ -8,6 +8,13 @@ export interface None {
 }
 export type Option<T> = Some<T> | None;
 export type Timestamp = bigint;
+export interface OrchestrationLogEntry {
+    ruleId?: bigint;
+    kind: OrchestrationKind;
+    continuationDelta?: number;
+    detail: string;
+    epoch: bigint;
+}
 export interface SwarmStats {
     totalMoney: number;
     tick: bigint;
@@ -40,6 +47,11 @@ export interface Trait {
     name: string;
     level: bigint;
 }
+export interface BudgetState {
+    perEpoch: bigint;
+    spent: bigint;
+    remaining: bigint;
+}
 export interface LearningRecord {
     at: Timestamp;
     id: bigint;
@@ -47,6 +59,16 @@ export interface LearningRecord {
     adoptedStrategy: Strategy;
     integrationWeight: number;
     agentId: bigint;
+}
+export interface RuleRecord {
+    id: bigint;
+    status: RuleStatus;
+    domain: string;
+    body: string;
+    version: bigint;
+    contribution: number;
+    parent?: bigint;
+    createdEpoch: bigint;
 }
 export interface Cell {
     value: Value;
@@ -169,7 +191,20 @@ export interface KnowledgeSnapshot {
     tick: bigint;
     knowledge: number;
 }
+export interface CoreMetrics {
+    history: Array<ContinuationScore>;
+    epoch: bigint;
+    budgetState: BudgetState;
+    currentScore: ContinuationScore;
+    coreStatus: string;
+}
 export type UserId = Principal;
+export interface ContinuationScore {
+    reserves: number;
+    survival: number;
+    uptime: number;
+    compositeScore: number;
+}
 export interface Result {
     hasMore: boolean;
     rows: Array<Array<Cell>>;
@@ -216,6 +251,18 @@ export enum AgentStatus {
     dormant = "dormant",
     evolving = "evolving"
 }
+export enum OrchestrationKind {
+    trial = "trial",
+    promotion = "promotion",
+    observation = "observation",
+    retirement = "retirement",
+    mutation = "mutation"
+}
+export enum RuleStatus {
+    trial = "trial",
+    active = "active",
+    retired = "retired"
+}
 export enum SimulationControl {
     resume = "resume",
     pause = "pause"
@@ -238,6 +285,7 @@ export interface backendInterface {
     addContribution(id: bigint, amount: number): Promise<void>;
     addSavingsGoal(input: SavingsGoalInput): Promise<bigint>;
     addTransaction(input: TransactionInput): Promise<bigint>;
+    advanceEpoch(): Promise<CoreMetrics>;
     advanceTick(): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createNetwork(name: string): Promise<bigint>;
@@ -254,7 +302,9 @@ export interface backendInterface {
     getBudget(id: bigint): Promise<Budget | null>;
     getCallerProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getCoreMetrics(): Promise<CoreMetrics>;
     getNetwork(networkId: bigint): Promise<Network | null>;
+    getRule(id: bigint): Promise<RuleRecord | null>;
     getSavingsGoal(id: bigint): Promise<SavingsGoal | null>;
     getSwarmStats(): Promise<SwarmStats>;
     getTransaction(id: bigint): Promise<Transaction | null>;
@@ -266,10 +316,13 @@ export interface backendInterface {
     listBudgets(): Promise<Array<Budget>>;
     listLearningRecords(): Promise<Array<LearningRecord>>;
     listNetworks(): Promise<Array<Network>>;
+    listOrchestrationLog(): Promise<Array<OrchestrationLogEntry>>;
+    listRules(): Promise<Array<RuleRecord>>;
     listSavingsGoals(): Promise<Array<SavingsGoal>>;
     listTrades(): Promise<Array<TradeRecord>>;
     listTransactions(): Promise<Array<Transaction>>;
     observeAndLearn(agentId: bigint, sourcePeerId: bigint, adoptedStrategy: Strategy, integrationWeight: number): Promise<void>;
+    resetEvolutionCore(): Promise<void>;
     resetSwarm(): Promise<void>;
     saveCallerProfile(profile: UserProfile): Promise<void>;
     schema(): Promise<string>;

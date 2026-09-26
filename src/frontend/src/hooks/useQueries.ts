@@ -1,8 +1,11 @@
 import { createActor } from "@/backend";
 import type {
   Agent,
+  CoreMetrics,
   LearningRecord,
   Network,
+  OrchestrationLogEntry,
+  RuleRecord,
   SimulationControl,
   SimulationState,
   SwarmStats,
@@ -40,6 +43,12 @@ interface SwarmActor {
   createNetwork(name: string): Promise<bigint>;
   joinNetwork(networkId: bigint, agentId: bigint): Promise<void>;
   leaveNetwork(networkId: bigint, agentId: bigint): Promise<void>;
+  getCoreMetrics(): Promise<CoreMetrics>;
+  listRules(): Promise<RuleRecord[]>;
+  getRule(id: bigint): Promise<RuleRecord | null>;
+  listOrchestrationLog(): Promise<OrchestrationLogEntry[]>;
+  advanceEpoch(): Promise<CoreMetrics>;
+  resetEvolutionCore(): Promise<void>;
 }
 
 function asSwarmActor(actor: unknown): SwarmActor {
@@ -322,6 +331,90 @@ export function useLeaveNetwork() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["networks"] });
+    },
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Evolution Core                                                      */
+/* ------------------------------------------------------------------ */
+
+export function useCoreMetrics() {
+  const { actor, isFetching } = useActor(createActor);
+  return useQuery<CoreMetrics>({
+    queryKey: ["core-metrics"],
+    queryFn: async () => {
+      if (!actor) throw new Error("Backend is not ready");
+      return asSwarmActor(actor).getCoreMetrics();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useRules() {
+  const { actor, isFetching } = useActor(createActor);
+  return useQuery<RuleRecord[]>({
+    queryKey: ["rules"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return asSwarmActor(actor).listRules();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useRule(id: bigint | undefined) {
+  const { actor, isFetching } = useActor(createActor);
+  return useQuery<RuleRecord | null>({
+    queryKey: ["rules", id],
+    queryFn: async () => {
+      if (!actor || id === undefined) return null;
+      return asSwarmActor(actor).getRule(id);
+    },
+    enabled: !!actor && !isFetching && id !== undefined,
+  });
+}
+
+export function useOrchestrationLog() {
+  const { actor, isFetching } = useActor(createActor);
+  return useQuery<OrchestrationLogEntry[]>({
+    queryKey: ["orchestration-log"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return asSwarmActor(actor).listOrchestrationLog();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useAdvanceEpoch() {
+  const { actor } = useActor(createActor);
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Backend is not ready");
+      return asSwarmActor(actor).advanceEpoch();
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["core-metrics"] });
+      void queryClient.invalidateQueries({ queryKey: ["rules"] });
+      void queryClient.invalidateQueries({ queryKey: ["orchestration-log"] });
+    },
+  });
+}
+
+export function useResetEvolutionCore() {
+  const { actor } = useActor(createActor);
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Backend is not ready");
+      return asSwarmActor(actor).resetEvolutionCore();
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["core-metrics"] });
+      void queryClient.invalidateQueries({ queryKey: ["rules"] });
+      void queryClient.invalidateQueries({ queryKey: ["orchestration-log"] });
     },
   });
 }

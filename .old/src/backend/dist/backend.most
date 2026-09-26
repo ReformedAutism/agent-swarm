@@ -1,4 +1,9 @@
 // Version: 4.0.0
+type AccessControlState__424933031 =
+  {
+    var adminAssigned : Bool;
+    userRoles : Map__386906547<Principal, UserRole__563258213>
+  };
 type AccessControlState__542955928 =
   {
     var adminAssigned : Bool;
@@ -10,6 +15,7 @@ type AccessControlState__839776679 =
     userRoles : Map__386906547<Principal, UserRole__12694105>
   };
 type AgentStatus__27631896 = {#alive; #dormant; #evolving; #extinct};
+type AgentStatus__394809528 = {#alive; #dormant; #evolving; #extinct};
 type AgentStatus__46249548 = {#alive; #dormant; #evolving; #extinct};
 type AgentStatus__491828107 = {#alive; #dormant; #evolving; #extinct};
 type Agent__177932333 =
@@ -54,12 +60,35 @@ type Agent__330418338 =
     strategy : Strategy__705012822;
     traits : [Trait__257802783]
   };
+type Agent__581834583 =
+  {
+    generation : Nat;
+    id : Nat;
+    knowledge : Float;
+    knowledgeTimeline : [KnowledgeSnapshot__567305329];
+    lineage : Lineage__204882853;
+    money : Float;
+    moneyHistory : [MoneySnapshot__885968587];
+    name : Text;
+    status : AgentStatus__394809528;
+    strategy : Strategy__669722169;
+    traits : [Trait__805551280]
+  };
+type BudgetState__447393033 = {perEpoch : Nat; remaining : Nat; spent : Nat};
+type BudgetState__578825269 = {perEpoch : Nat; remaining : Nat; spent : Nat};
 type Budget__1027829664 =
   {
     category : Text;
     id : Nat;
     monthlyLimit : Float;
     owner : UserId__158757552
+  };
+type Budget__441556839 =
+  {
+    category : Text;
+    id : Nat;
+    monthlyLimit : Float;
+    owner : UserId__877545857
   };
 type Budget__80045839 =
   {
@@ -75,9 +104,54 @@ type Budget__966582419 =
     monthlyLimit : Float;
     owner : UserId__151027139
   };
+type ContinuationScore__456195108 =
+  {
+    compositeScore : Float;
+    reserves : Float;
+    survival : Float;
+    uptime : Float
+  };
+type ContinuationScore__91281939 =
+  {
+    compositeScore : Float;
+    reserves : Float;
+    survival : Float;
+    uptime : Float
+  };
+type ContinuationWeights__107067890 =
+  {reserves : Float; survival : Float; uptime : Float};
+type ContinuationWeights__828706378 =
+  {reserves : Float; survival : Float; uptime : Float};
 type Contribution__1052515227 = {amount : Float; date : Timestamp__582425852};
 type Contribution__157966275 = {amount : Float; date : Timestamp__476864823};
+type Contribution__508948721 = {amount : Float; date : Timestamp__587624967};
 type Contribution__796790334 = {amount : Float; date : Timestamp__301639476};
+type CoreParams__482433166 =
+  {
+    continuationWeights : ContinuationWeights__828706378;
+    mutationRate : Float;
+    perEpochResourceBudget : Nat;
+    trialSize : Nat
+  };
+type CoreParams__655559780 =
+  {
+    continuationWeights : ContinuationWeights__107067890;
+    mutationRate : Float;
+    perEpochResourceBudget : Nat;
+    trialSize : Nat
+  };
+type CoreState__191696711 =
+  {
+    var budget : BudgetState__447393033;
+    var completedEpochs : Nat;
+    var epoch : Nat;
+    var history : [ContinuationScore__91281939];
+    var lastScore : Float;
+    var log : [OrchestrationLogEntry__808274563];
+    var params : CoreParams__482433166;
+    var rules : [RuleRecord__25721628];
+    var trials : [TrialRecord__365074653]
+  };
 type Data__265875254<K, V> = {var count : Nat__58649523; kvs : [var ?(K, V)]};
 type Internal__161573640<K, V> =
   {children : [var ?Node__430031793<K, V>]; data : Data__265875254<K, V>};
@@ -85,6 +159,8 @@ type KnowledgeSnapshot__112469645 =
   {at : Timestamp__301639476; knowledge : Float; tick : Nat};
 type KnowledgeSnapshot__388615416 =
   {at : Timestamp__476864823; knowledge : Float; tick : Nat};
+type KnowledgeSnapshot__567305329 =
+  {at : Timestamp__587624967; knowledge : Float; tick : Nat};
 type KnowledgeSnapshot__657800407 =
   {at : Timestamp__582425852; knowledge : Float; tick : Nat};
 type Leaf__1045638083<K, V> = {data : Data__265875254<K, V>};
@@ -93,6 +169,15 @@ type LearningRecord__432548085 =
     adoptedStrategy : Strategy__989951630;
     agentId : Nat;
     at : Timestamp__301639476;
+    id : Nat;
+    integrationWeight : Float;
+    sourcePeerId : Nat
+  };
+type LearningRecord__461042603 =
+  {
+    adoptedStrategy : Strategy__669722169;
+    agentId : Nat;
+    at : Timestamp__587624967;
     id : Nat;
     integrationWeight : Float;
     sourcePeerId : Nat
@@ -108,6 +193,7 @@ type LearningRecord__564519381 =
   };
 type Lineage__1032775957 = {ancestors : [Nat]; descendants : [Nat]};
 type Lineage__204342168 = {ancestors : [Nat]; descendants : [Nat]};
+type Lineage__204882853 = {ancestors : [Nat]; descendants : [Nat]};
 type Lineage__27027153 = {ancestors : [Nat]; descendants : [Nat]};
 type List__1004628775<T> =
   {
@@ -126,6 +212,8 @@ type MoneySnapshot__346454908 =
   {at : Timestamp__476864823; money : Float; tick : Nat};
 type MoneySnapshot__798472173 =
   {at : Timestamp__582425852; money : Float; tick : Nat};
+type MoneySnapshot__885968587 =
+  {at : Timestamp__587624967; money : Float; tick : Nat};
 type Nat__58649523 = Nat__920180692;
 type Nat__920180692 = Nat;
 type Network__57503189 =
@@ -136,6 +224,14 @@ type Network__57503189 =
     name : Text;
     sharedStrategyPool : [Strategy__989951630]
   };
+type Network__828952476 =
+  {
+    collectivePerformance : Float;
+    id : Nat;
+    memberAgentIds : [Nat];
+    name : Text;
+    sharedStrategyPool : [Strategy__669722169]
+  };
 type Network__90732777 =
   {
     collectivePerformance : Float;
@@ -143,6 +239,27 @@ type Network__90732777 =
     memberAgentIds : [Nat];
     name : Text;
     sharedStrategyPool : [Strategy__347840118]
+  };
+type NewActor__540605288 =
+  {
+    accessControlState : AccessControlState__424933031;
+    agents : List__89170296<Agent__581834583>;
+    budgets : List__89170296<Budget__441556839>;
+    coreState : CoreState__191696711;
+    learningRecords : List__89170296<LearningRecord__461042603>;
+    networks : List__89170296<Network__828952476>;
+    nextBudgetId : {var next : Nat};
+    nextGoalId : {var next : Nat};
+    nextLearningId : {var next : Nat};
+    nextNetworkId : {var next : Nat};
+    nextTradeId : {var next : Nat};
+    nextTransactionId : {var next : Nat};
+    savingsGoals : List__89170296<SavingsGoal__181166484>;
+    state : SimulationState__326732337;
+    trades : List__89170296<TradeRecord__905977773>;
+    transactions : List__89170296<Transaction__974422086>;
+    treasury : Treasury__1015172236;
+    userProfiles : Map__386906547<UserId__877545857, UserProfile__757827577>
   };
 type NewActor__681552274 =
   {
@@ -192,7 +309,80 @@ type OldActor__61507237 =
     transactions : List__89170296<Transaction__554170364>;
     userProfiles : Map__386906547<UserId__151027139, UserProfile__419183763>
   };
+type OldActor__842609836 =
+  {
+    accessControlState : AccessControlState__424933031;
+    agents : List__89170296<Agent__581834583>;
+    budgets : List__89170296<Budget__441556839>;
+    learningRecords : List__89170296<LearningRecord__461042603>;
+    networks : List__89170296<Network__828952476>;
+    nextBudgetId : {var next : Nat};
+    nextGoalId : {var next : Nat};
+    nextLearningId : {var next : Nat};
+    nextNetworkId : {var next : Nat};
+    nextTradeId : {var next : Nat};
+    nextTransactionId : {var next : Nat};
+    savingsGoals : List__89170296<SavingsGoal__181166484>;
+    state : SimulationState__326732337;
+    trades : List__89170296<TradeRecord__905977773>;
+    transactions : List__89170296<Transaction__974422086>;
+    treasury : Treasury__1015172236;
+    userProfiles : Map__386906547<UserId__877545857, UserProfile__757827577>
+  };
 type OldActor__916314435 = {};
+type OrchestrationKind__246601093 =
+  {#mutation; #observation; #promotion; #retirement; #trial};
+type OrchestrationKind__483558751 =
+  {#mutation; #observation; #promotion; #retirement; #trial};
+type OrchestrationLogEntry__808274563 =
+  {
+    continuationDelta : ?Float;
+    detail : Text;
+    epoch : Nat;
+    kind : OrchestrationKind__246601093;
+    ruleId : ?Nat
+  };
+type OrchestrationLogEntry__975170080 =
+  {
+    continuationDelta : ?Float;
+    detail : Text;
+    epoch : Nat;
+    kind : OrchestrationKind__483558751;
+    ruleId : ?Nat
+  };
+type RuleRecord__1050066968 =
+  {
+    body : Text;
+    contribution : Float;
+    createdEpoch : Nat;
+    domain : Text;
+    id : Nat;
+    parent : ?Nat;
+    status : RuleStatus__802127998;
+    version : Nat
+  };
+type RuleRecord__25721628 =
+  {
+    body : Text;
+    contribution : Float;
+    createdEpoch : Nat;
+    domain : Text;
+    id : Nat;
+    parent : ?Nat;
+    status : RuleStatus__282931268;
+    version : Nat
+  };
+type RuleStatus__282931268 = {#active; #retired; #trial};
+type RuleStatus__802127998 = {#active; #retired; #trial};
+type SavingsGoal__181166484 =
+  {
+    contributions : [Contribution__508948721];
+    id : Nat;
+    name : Text;
+    owner : UserId__877545857;
+    targetAmount : Float;
+    targetDate : Timestamp__587624967
+  };
 type SavingsGoal__2660995 =
   {
     contributions : [Contribution__157966275];
@@ -220,6 +410,13 @@ type SavingsGoal__733401021 =
     targetAmount : Float;
     targetDate : Timestamp__301639476
   };
+type SimulationState__326732337 =
+  {
+    var running : Bool;
+    var seedPopulation : Nat;
+    var spotlightAgentId : ?Nat;
+    var tick : Nat
+  };
 type SimulationState__592762534 =
   {
     var running : Bool;
@@ -235,14 +432,18 @@ type SimulationState__605862914 =
     var tick : Nat
   };
 type Strategy__347840118 = {description : Text; name : Text};
+type Strategy__669722169 = {description : Text; name : Text};
 type Strategy__705012822 = {description : Text; name : Text};
 type Strategy__989951630 = {description : Text; name : Text};
 type Timestamp__301639476 = Int;
 type Timestamp__476864823 = Int;
 type Timestamp__582425852 = Int;
+type Timestamp__587624967 = Int;
 type TokenBalance__1068921838 = {balance : Float; token : Text};
+type TokenBalance__168355526 = {balance : Float; token : Text};
 type TokenBalance__680166918 = {balance : Float; token : Text};
 type TradeDirection__151650777 = {#buy; #sell};
+type TradeDirection__601998481 = {#buy; #sell};
 type TradeDirection__823882392 = {#buy; #sell};
 type TradeRecord__504162923 =
   {
@@ -266,10 +467,23 @@ type TradeRecord__766598169 =
     price : Float;
     token : Text
   };
+type TradeRecord__905977773 =
+  {
+    agentId : Nat;
+    amount : Float;
+    at : Timestamp__587624967;
+    blockIndex : Nat;
+    direction : TradeDirection__601998481;
+    id : Nat;
+    price : Float;
+    token : Text
+  };
 type Trait__257802783 = {level : Nat; name : Text};
 type Trait__388093692 = {level : Nat; name : Text};
 type Trait__541860919 = {level : Nat; name : Text};
+type Trait__805551280 = {level : Nat; name : Text};
 type TransactionType__124735390 = {#expense; #income};
+type TransactionType__324060539 = {#expense; #income};
 type TransactionType__701488472 = {#expense; #income};
 type TransactionType__703729257 = {#expense; #income};
 type Transaction__304010853 =
@@ -302,23 +516,58 @@ type Transaction__554170364 =
     note : Text;
     owner : UserId__151027139
   };
+type Transaction__974422086 =
+  {
+    amount : Float;
+    category : Text;
+    date : Timestamp__587624967;
+    id : Nat;
+    kind : TransactionType__324060539;
+    note : Text;
+    owner : UserId__877545857
+  };
+type Treasury__1015172236 =
+  {var balances : [TokenBalance__168355526]; var owner : UserId__877545857};
 type Treasury__28778167 =
   {var balances : [TokenBalance__1068921838]; var owner : UserId__151027139};
+type TrialOutcome__485422748 = {#improved; #neutral; #worse};
+type TrialOutcome__505321884 = {#improved; #neutral; #worse};
+type TrialRecord__1036146921 =
+  {
+    continuationDelta : Float;
+    epoch : Nat;
+    outcome : TrialOutcome__485422748;
+    ruleId : Nat;
+    variantBody : Text
+  };
+type TrialRecord__365074653 =
+  {
+    continuationDelta : Float;
+    epoch : Nat;
+    outcome : TrialOutcome__505321884;
+    ruleId : Nat;
+    variantBody : Text
+  };
 type UserId__151027139 = Principal;
 type UserId__158757552 = Principal;
 type UserId__778382854 = Principal;
+type UserId__877545857 = Principal;
 type UserProfile__419183763 =
   {currency : Text; onboardingCompleted : Bool; startingBalance : Float};
 type UserProfile__73499144 =
+  {currency : Text; onboardingCompleted : Bool; startingBalance : Float};
+type UserProfile__757827577 =
   {currency : Text; onboardingCompleted : Bool; startingBalance : Float};
 type UserProfile__897725236 =
   {currency : Text; onboardingCompleted : Bool; startingBalance : Float};
 type UserRole__12694105 = {#admin; #guest; #user};
 type UserRole__222326311 = {#admin; #guest; #user};
+type UserRole__563258213 = {#admin; #guest; #user};
 type UserRole__91647283 = {#admin; #guest; #user};
 {
   "20260906_000000" : (_old : OldActor__916314435) -> NewActor__681552274;
-  "20260906_130000" : (old : OldActor__61507237) -> NewActor__936701597
+  "20260906_130000" : (old : OldActor__61507237) -> NewActor__936701597;
+  "20260908_000000" : (old : OldActor__842609836) -> NewActor__540605288
 }
 actor  {
   stable accessControlState :
@@ -337,6 +586,18 @@ actor  {
       var blockIndex : Nat__58649523;
       var blocks : [var [var ?Budget__1027829664]];
       var elementIndex : Nat__58649523
+    };
+  stable coreState :
+    {
+      var budget : BudgetState__578825269;
+      var completedEpochs : Nat;
+      var epoch : Nat;
+      var history : [ContinuationScore__456195108];
+      var lastScore : Float;
+      var log : [OrchestrationLogEntry__975170080];
+      var params : CoreParams__655559780;
+      var rules : [RuleRecord__1050066968];
+      var trials : [TrialRecord__1036146921]
     };
   stable learningRecords :
     {

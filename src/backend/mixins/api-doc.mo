@@ -33,7 +33,8 @@ it): `getCallerProfile`, `saveCallerProfile`, `addTransaction`,
 `setSimulationControl`, `resetSwarm`, `spotlightAgent`, `observeAndLearn`,
 `listLearningRecords`, `getAgentLearning`, `getTreasury`, `executeTrade`,
 `listTrades`, `getAgentTrades`, `createNetwork`, `joinNetwork`, `leaveNetwork`,
-`listNetworks`, `getNetwork`.
+`listNetworks`, `getNetwork`, `getCoreMetrics`, `listRules`, `getRule`,
+`listOrchestrationLog`, `advanceEpoch`, `resetEvolutionCore`.
 
 The budget and savings-goal methods (`addBudget`, `getBudget`, `listBudgets`,
 `updateBudget`, `deleteBudget`, `addSavingsGoal`, `getSavingsGoal`,
@@ -129,6 +130,12 @@ principal than the one the frontend registered.
 - `leaveNetwork(networkId : Nat, agentId : Nat) : async ()` — removes an agent from a network.
 - `listNetworks() : async [Network]` — returns all networks.
 - `getNetwork(networkId : Nat) : async ?Network` — returns a single network by id, or `null` when unknown.
+- `getCoreMetrics() : async CoreMetrics` — returns the evolution core's current continuation score, score history, epoch, resource budget state, and core status (`active` or `conserving`).
+- `listRules() : async [RuleRecord]` — returns the full mutable rule registry (seed rules plus any promoted or retired variants).
+- `getRule(id : Nat) : async ?RuleRecord` — returns a single rule by id, or `null` when unknown.
+- `listOrchestrationLog() : async [OrchestrationLogEntry]` — returns the orchestration activity log (observations, mutations, trials, promotions, retirements).
+- `advanceEpoch() : async CoreMetrics` — runs one orchestration epoch: observes the continuation score, mutates the suboptimal rule, runs shadow trials, and promotes or retires the rule. Consumes the per-epoch resource budget.
+- `resetEvolutionCore() : async ()` — restores the seed rules and clears all orchestration state (trials, log, epoch, budget, history) without touching agents, trades, treasury, or networks.
 
 ## Queryable Data (OQL)
 The backend exposes its persisted data through the OQL query layer, discoverable
@@ -143,6 +150,10 @@ carries its own authorization level:
   its own rows, while the platform controller reads all): `budget`,
   `transaction`, `savingsGoal`, `userProfile`. Ownership is the caller's
   principal.
+- **Controller-only tables** (`.controllerOnly()` — readable only by the
+  platform controller / Data Intelligence agent, private to end users):
+  `rule`, `trial`, `orchestrationLog`. These expose the evolution core's rule
+  registry, shadow-trial outcomes, and orchestration activity log.
 
 ## Units & Encodings
 - **Agent id** (`id`): a `Nat` unique per agent.
@@ -181,6 +192,29 @@ carries its own authorization level:
   `name` is `Text`; `targetAmount` is a `Float`; `targetDate` is an `Int`
   nanosecond timestamp; `contributions` is a list of
   `{ amount : Float; date : Int }`.
+- **Continuation score** (`ContinuationScore`): `survival`, `reserves`,
+  `uptime`, and `compositeScore` are `Float` values in `[0, 1]`. `survival` is
+  the fraction of active rules in the registry; `reserves` is the fraction of
+  the per-epoch resource budget remaining (clamped to `[0, 1]`); `uptime` is
+  completed epochs over total epochs. `compositeScore` is the weighted sum of
+  the three using the core's `continuationWeights`.
+- **Core metrics** (`CoreMetrics`): `currentScore` is a `ContinuationScore`;
+  `history` is the list of past scores; `epoch` is a `Nat`; `budgetState` is
+  `{ perEpoch : Nat; spent : Nat; remaining : Nat }`; `coreStatus` is the
+  `Text` `active` or `conserving`.
+- **Rule** (`RuleRecord`): `id`, `version`, `createdEpoch` are `Nat`; `domain`
+  and `body` are `Text` (the body is a compact `name=value;...` encoding of the
+  rule's numeric parameters); `parent` is an optional `Nat` (the id of the rule
+  a promoted variant descended from, `null` for seed rules); `status` is the
+  variant `active`, `trial`, or `retired`; `contribution` is a `Float` (the
+  continuation delta that earned the rule its current status).
+- **Trial** (`TrialRecord`): `ruleId` and `epoch` are `Nat`; `variantBody` is
+  the `Text` body of the shadow-trial variant; `outcome` is the variant
+  `improved`, `neutral`, or `worse`; `continuationDelta` is a `Float`.
+- **Orchestration log** (`OrchestrationLogEntry`): `epoch` is a `Nat`; `kind`
+  is the variant `observation`, `mutation`, `trial`, `promotion`, or
+  `retirement`; `ruleId` is an optional `Nat`; `detail` is a `Text` summary;
+  `continuationDelta` is an optional `Float`.
 
 ## Lifecycle & Polling
 - The simulation advances one tick per `advanceTick()` call while `running` is
@@ -199,6 +233,18 @@ carries its own authorization level:
   `listAgents()`) to observe live-updating numbers after each `advanceTick()`.
 - `resetSwarm()` resets the tick to 0, clears the spotlight, and reseeds the
   population.
+- The evolution core advances one epoch per `advanceEpoch()` call. Each epoch
+  observes the continuation score, mutates the suboptimal active rule, runs
+  shadow trials against current conditions, and promotes the best improving
+  variant (or retires the rule when no variant improves). An epoch that ran at
+  least one trial counts as completed.
+- `advanceEpoch()` consumes the per-epoch resource budget: each shadow trial
+  spends one unit of `budget.remaining`. When the budget is exhausted, no
+  further trials run that epoch. The budget is reset to `perEpoch` by
+  `resetEvolutionCore()`.
+- `getCoreMetrics()` returns the current snapshot; poll it (or
+  `listOrchestrationLog()`) to observe live-updating numbers after each
+  `advanceEpoch()`.
 
 ## Mutation Retry Safety
 - `advanceTick()` is not idempotent: each call advances the simulation by one
@@ -210,6 +256,13 @@ carries its own authorization level:
   and reseeds a fresh population. Repeated calls reseed again.
 - `spotlightAgent(id)` is idempotent — setting the same spotlight again is a
   no-op.
+- `advanceEpoch()` is not idempotent: each call runs a full orchestration epoch
+  and consumes resource budget, so retrying advances further and spends more
+  budget. Callers should advance once per intended epoch.
+- `resetEvolutionCore()` is destructive to the evolution core: it restores the
+  seed rules and clears all orchestration state (trials, log, epoch, budget,
+  history). It does **not** affect agents, trades, treasury, or networks.
+  Repeated calls restore the same seed state.
 
 ## Errors, Traps & Gotchas
 - Role-guarded methods trap with `Unauthorized` when the caller lacks the
@@ -237,6 +290,17 @@ carries its own authorization level:
   ledger's base units (8 decimals, e.g. e8s for ICP); a negative amount traps
   with `Amount must be non-negative`.
 - `getNetwork(id)` returns `null` for an unknown id rather than trapping.
+- `getRule(id)` returns `null` for an unknown id rather than trapping.
+- `advanceEpoch()` consumes the per-epoch resource budget; when
+  `budget.remaining` reaches zero, the epoch runs no shadow trials (and so does
+  not count as completed), but still records an observation and appends to the
+  score history. Callers should not expect a trial to run every epoch.
+- `resetEvolutionCore()` restores the seed rules and clears orchestration state
+  only — agents, trades, treasury, and networks are left untouched.
+- The evolution core's rule bodies are plain-text encodings of numeric
+  parameters; the orchestration layer mutates them generically with no domain
+  knowledge. The seed rule set is authored both in `lib/evolution-core.mo` and
+  the migration chain so `resetEvolutionCore()` can restore it.
 - The simulation is deterministic: per-tick randomness is derived from a Nat
   seed (agent id and tick), so identical inputs produce identical outcomes."
   };

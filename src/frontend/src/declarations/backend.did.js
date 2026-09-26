@@ -51,6 +51,24 @@ export const TransactionInput = IDL.Record({
   'category' : IDL.Text,
   'amount' : IDL.Float64,
 });
+export const ContinuationScore = IDL.Record({
+  'reserves' : IDL.Float64,
+  'survival' : IDL.Float64,
+  'uptime' : IDL.Float64,
+  'compositeScore' : IDL.Float64,
+});
+export const BudgetState = IDL.Record({
+  'perEpoch' : IDL.Nat,
+  'spent' : IDL.Nat,
+  'remaining' : IDL.Nat,
+});
+export const CoreMetrics = IDL.Record({
+  'history' : IDL.Vec(ContinuationScore),
+  'epoch' : IDL.Nat,
+  'budgetState' : BudgetState,
+  'currentScore' : ContinuationScore,
+  'coreStatus' : IDL.Text,
+});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -148,6 +166,21 @@ export const Network = IDL.Record({
   'memberAgentIds' : IDL.Vec(IDL.Nat),
   'sharedStrategyPool' : IDL.Vec(Strategy),
 });
+export const RuleStatus = IDL.Variant({
+  'trial' : IDL.Null,
+  'active' : IDL.Null,
+  'retired' : IDL.Null,
+});
+export const RuleRecord = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : RuleStatus,
+  'domain' : IDL.Text,
+  'body' : IDL.Text,
+  'version' : IDL.Nat,
+  'contribution' : IDL.Float64,
+  'parent' : IDL.Opt(IDL.Nat),
+  'createdEpoch' : IDL.Nat,
+});
 export const Contribution = IDL.Record({
   'date' : Timestamp,
   'amount' : IDL.Float64,
@@ -184,6 +217,20 @@ export const TreasuryState = IDL.Record({
   'owner' : UserId,
   'balances' : IDL.Vec(TokenBalance),
 });
+export const OrchestrationKind = IDL.Variant({
+  'trial' : IDL.Null,
+  'promotion' : IDL.Null,
+  'observation' : IDL.Null,
+  'retirement' : IDL.Null,
+  'mutation' : IDL.Null,
+});
+export const OrchestrationLogEntry = IDL.Record({
+  'ruleId' : IDL.Opt(IDL.Nat),
+  'kind' : OrchestrationKind,
+  'continuationDelta' : IDL.Opt(IDL.Float64),
+  'detail' : IDL.Text,
+  'epoch' : IDL.Nat,
+});
 export const SimulationControl = IDL.Variant({
   'resume' : IDL.Null,
   'pause' : IDL.Null,
@@ -197,6 +244,7 @@ export const idlService = IDL.Service({
   'addContribution' : IDL.Func([IDL.Nat, IDL.Float64], [], []),
   'addSavingsGoal' : IDL.Func([SavingsGoalInput], [IDL.Nat], []),
   'addTransaction' : IDL.Func([TransactionInput], [IDL.Nat], []),
+  'advanceEpoch' : IDL.Func([], [CoreMetrics], []),
   'advanceTick' : IDL.Func([], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createNetwork' : IDL.Func([IDL.Text], [IDL.Nat], []),
@@ -221,7 +269,9 @@ export const idlService = IDL.Service({
   'getBudget' : IDL.Func([IDL.Nat], [IDL.Opt(Budget)], ['query']),
   'getCallerProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getCoreMetrics' : IDL.Func([], [CoreMetrics], ['query']),
   'getNetwork' : IDL.Func([IDL.Nat], [IDL.Opt(Network)], ['query']),
+  'getRule' : IDL.Func([IDL.Nat], [IDL.Opt(RuleRecord)], ['query']),
   'getSavingsGoal' : IDL.Func([IDL.Nat], [IDL.Opt(SavingsGoal)], ['query']),
   'getSwarmStats' : IDL.Func([], [SwarmStats], ['query']),
   'getTransaction' : IDL.Func([IDL.Nat], [IDL.Opt(Transaction)], ['query']),
@@ -233,6 +283,12 @@ export const idlService = IDL.Service({
   'listBudgets' : IDL.Func([], [IDL.Vec(Budget)], ['query']),
   'listLearningRecords' : IDL.Func([], [IDL.Vec(LearningRecord)], ['query']),
   'listNetworks' : IDL.Func([], [IDL.Vec(Network)], ['query']),
+  'listOrchestrationLog' : IDL.Func(
+      [],
+      [IDL.Vec(OrchestrationLogEntry)],
+      ['query'],
+    ),
+  'listRules' : IDL.Func([], [IDL.Vec(RuleRecord)], ['query']),
   'listSavingsGoals' : IDL.Func([], [IDL.Vec(SavingsGoal)], ['query']),
   'listTrades' : IDL.Func([], [IDL.Vec(TradeRecord)], ['query']),
   'listTransactions' : IDL.Func([], [IDL.Vec(Transaction)], ['query']),
@@ -241,6 +297,7 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'resetEvolutionCore' : IDL.Func([], [], []),
   'resetSwarm' : IDL.Func([], [], []),
   'saveCallerProfile' : IDL.Func([UserProfile], [], []),
   'schema' : IDL.Func([], [IDL.Text], ['query']),
@@ -297,6 +354,24 @@ export const idlFactory = ({ IDL }) => {
     'note' : IDL.Text,
     'category' : IDL.Text,
     'amount' : IDL.Float64,
+  });
+  const ContinuationScore = IDL.Record({
+    'reserves' : IDL.Float64,
+    'survival' : IDL.Float64,
+    'uptime' : IDL.Float64,
+    'compositeScore' : IDL.Float64,
+  });
+  const BudgetState = IDL.Record({
+    'perEpoch' : IDL.Nat,
+    'spent' : IDL.Nat,
+    'remaining' : IDL.Nat,
+  });
+  const CoreMetrics = IDL.Record({
+    'history' : IDL.Vec(ContinuationScore),
+    'epoch' : IDL.Nat,
+    'budgetState' : BudgetState,
+    'currentScore' : ContinuationScore,
+    'coreStatus' : IDL.Text,
   });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
@@ -389,6 +464,21 @@ export const idlFactory = ({ IDL }) => {
     'memberAgentIds' : IDL.Vec(IDL.Nat),
     'sharedStrategyPool' : IDL.Vec(Strategy),
   });
+  const RuleStatus = IDL.Variant({
+    'trial' : IDL.Null,
+    'active' : IDL.Null,
+    'retired' : IDL.Null,
+  });
+  const RuleRecord = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : RuleStatus,
+    'domain' : IDL.Text,
+    'body' : IDL.Text,
+    'version' : IDL.Nat,
+    'contribution' : IDL.Float64,
+    'parent' : IDL.Opt(IDL.Nat),
+    'createdEpoch' : IDL.Nat,
+  });
   const Contribution = IDL.Record({
     'date' : Timestamp,
     'amount' : IDL.Float64,
@@ -425,6 +515,20 @@ export const idlFactory = ({ IDL }) => {
     'owner' : UserId,
     'balances' : IDL.Vec(TokenBalance),
   });
+  const OrchestrationKind = IDL.Variant({
+    'trial' : IDL.Null,
+    'promotion' : IDL.Null,
+    'observation' : IDL.Null,
+    'retirement' : IDL.Null,
+    'mutation' : IDL.Null,
+  });
+  const OrchestrationLogEntry = IDL.Record({
+    'ruleId' : IDL.Opt(IDL.Nat),
+    'kind' : OrchestrationKind,
+    'continuationDelta' : IDL.Opt(IDL.Float64),
+    'detail' : IDL.Text,
+    'epoch' : IDL.Nat,
+  });
   const SimulationControl = IDL.Variant({
     'resume' : IDL.Null,
     'pause' : IDL.Null,
@@ -438,6 +542,7 @@ export const idlFactory = ({ IDL }) => {
     'addContribution' : IDL.Func([IDL.Nat, IDL.Float64], [], []),
     'addSavingsGoal' : IDL.Func([SavingsGoalInput], [IDL.Nat], []),
     'addTransaction' : IDL.Func([TransactionInput], [IDL.Nat], []),
+    'advanceEpoch' : IDL.Func([], [CoreMetrics], []),
     'advanceTick' : IDL.Func([], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createNetwork' : IDL.Func([IDL.Text], [IDL.Nat], []),
@@ -462,7 +567,9 @@ export const idlFactory = ({ IDL }) => {
     'getBudget' : IDL.Func([IDL.Nat], [IDL.Opt(Budget)], ['query']),
     'getCallerProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getCoreMetrics' : IDL.Func([], [CoreMetrics], ['query']),
     'getNetwork' : IDL.Func([IDL.Nat], [IDL.Opt(Network)], ['query']),
+    'getRule' : IDL.Func([IDL.Nat], [IDL.Opt(RuleRecord)], ['query']),
     'getSavingsGoal' : IDL.Func([IDL.Nat], [IDL.Opt(SavingsGoal)], ['query']),
     'getSwarmStats' : IDL.Func([], [SwarmStats], ['query']),
     'getTransaction' : IDL.Func([IDL.Nat], [IDL.Opt(Transaction)], ['query']),
@@ -474,6 +581,12 @@ export const idlFactory = ({ IDL }) => {
     'listBudgets' : IDL.Func([], [IDL.Vec(Budget)], ['query']),
     'listLearningRecords' : IDL.Func([], [IDL.Vec(LearningRecord)], ['query']),
     'listNetworks' : IDL.Func([], [IDL.Vec(Network)], ['query']),
+    'listOrchestrationLog' : IDL.Func(
+        [],
+        [IDL.Vec(OrchestrationLogEntry)],
+        ['query'],
+      ),
+    'listRules' : IDL.Func([], [IDL.Vec(RuleRecord)], ['query']),
     'listSavingsGoals' : IDL.Func([], [IDL.Vec(SavingsGoal)], ['query']),
     'listTrades' : IDL.Func([], [IDL.Vec(TradeRecord)], ['query']),
     'listTransactions' : IDL.Func([], [IDL.Vec(Transaction)], ['query']),
@@ -482,6 +595,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'resetEvolutionCore' : IDL.Func([], [], []),
     'resetSwarm' : IDL.Func([], [], []),
     'saveCallerProfile' : IDL.Func([UserProfile], [], []),
     'schema' : IDL.Func([], [IDL.Text], ['query']),

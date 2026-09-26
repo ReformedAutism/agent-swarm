@@ -80,6 +80,18 @@
     --trade-buy: 0.68 0.17 150;
     --trade-sell: 0.62 0.2 25;
 
+    --continuation-healthy: 0.72 0.17 158;
+    --continuation-conserving: 0.78 0.14 80;
+    --continuation-critical: 0.6 0.2 25;
+    --rule-active: 0.68 0.17 150;
+    --rule-trial: 0.78 0.12 210;
+    --rule-retired: 0.56 0.015 155;
+    --orchestrate: 0.78 0.12 210;
+    --orchestrate-mutate: 0.7 0.16 300;
+    --orchestrate-retain: 0.68 0.17 150;
+    --orchestrate-discard: 0.56 0.015 155;
+    --budget: 0.74 0.13 185;
+
     --sidebar: 0.15 0.02 155;
     --sidebar-foreground: 0.93 0.01 150;
     --sidebar-primary: 0.7 0.17 160;
@@ -143,6 +155,18 @@
     --network: 0.74 0.13 185;
     --trade-buy: 0.68 0.17 150;
     --trade-sell: 0.62 0.2 25;
+
+    --continuation-healthy: 0.72 0.17 158;
+    --continuation-conserving: 0.78 0.14 80;
+    --continuation-critical: 0.6 0.2 25;
+    --rule-active: 0.68 0.17 150;
+    --rule-trial: 0.78 0.12 210;
+    --rule-retired: 0.56 0.015 155;
+    --orchestrate: 0.78 0.12 210;
+    --orchestrate-mutate: 0.7 0.16 300;
+    --orchestrate-retain: 0.68 0.17 150;
+    --orchestrate-discard: 0.56 0.015 155;
+    --budget: 0.74 0.13 185;
 
     --sidebar: 0.15 0.02 155;
     --sidebar-foreground: 0.93 0.01 150;
@@ -246,5 +270,107 @@
   }
   .bg-trade-sell {
     background-color: oklch(var(--trade-sell));
+  }
+  .text-continuation-healthy {
+    color: oklch(var(--continuation-healthy));
+  }
+  .text-continuation-conserving {
+    color: oklch(var(--continuation-conserving));
+  }
+  .text-continuation-critical {
+    color: oklch(var(--continuation-critical));
+  }
+  .bg-continuation-healthy {
+    background-color: oklch(var(--continuation-healthy));
+  }
+  .bg-continuation-conserving {
+    background-color: oklch(var(--continuation-conserving));
+  }
+  .bg-continuation-critical {
+    background-color: oklch(var(--continuation-critical));
+  }
+  .glow-continuation-healthy {
+    box-shadow: 0 0 0 1px oklch(var(--continuation-healthy) / 0.35), 0 0 16px
+      -2px oklch(var(--continuation-healthy) / 0.5);
+  }
+  .glow-continuation-conserving {
+    box-shadow: 0 0 0 1px oklch(var(--continuation-conserving) / 0.35), 0 0 14px
+      -2px oklch(var(--continuation-conserving) / 0.45);
+  }
+  .glow-continuation-critical {
+    box-shadow: 0 0 0 1px oklch(var(--continuation-critical) / 0.35), 0 0 14px
+      -2px oklch(var(--continuation-critical) / 0.5);
+  }
+  .text-rule-active {
+    color: oklch(var(--rule-active));
+  }
+  .text-rule-trial {
+    color: oklch(var(--rule-trial));
+  }
+  .text-rule-retired {
+    color: oklch(var(--rule-retired));
+  }
+  .bg-rule-active {
+    background-color: oklch(var(--rule-active));
+  }
+  .bg-rule-trial {
+    background-color: oklch(var(--rule-trial));
+  }
+  .bg-rule-retired {
+    background-color: oklch(var(--rule-retired));
+  }
+  .glow-rule-active {
+    box-shadow: 0 0 0 1px oklch(var(--rule-active) / 0.35), 0 0 12px -2px
+      oklch(var(--rule-active) / 0.4);
+  }
+  .glow-rule-trial {
+    box-shadow: 0 0 0 1px oklch(var(--rule-trial) / 0.35), 0 0 12px -2px
+      oklch(var(--rule-trial) / 0.4);
+  }
+  .text-orchestrate {
+    color: oklch(var(--orchestrate));
+  }
+  .bg-orchestrate {
+    background-color: oklch(var(--orchestrate));
+  }
+  .glow-orchestrate {
+    box-shadow: 0 0 0 1px oklch(var(--orchestrate) / 0.35), 0 0 14px -2px
+      oklch(var(--orchestrate) / 0.45);
+  }
+  .text-orchestrate-mutate {
+    color: oklch(var(--orchestrate-mutate));
+  }
+  .bg-orchestrate-mutate {
+    background-color: oklch(var(--orchestrate-mutate));
+  }
+  .glow-orchestrate-mutate {
+    box-shadow: 0 0 0 1px oklch(var(--orchestrate-mutate) / 0.35), 0 0 14px -2px
+      oklch(var(--orchestrate-mutate) / 0.45);
+  }
+  .text-orchestrate-retain {
+    color: oklch(var(--orchestrate-retain));
+  }
+  .bg-orchestrate-retain {
+    background-color: oklch(var(--orchestrate-retain));
+  }
+  .glow-orchestrate-retain {
+    box-shadow: 0 0 0 1px oklch(var(--orchestrate-retain) / 0.35), 0 0 12px -2px
+      oklch(var(--orchestrate-retain) / 0.4);
+  }
+  .text-orchestrate-discard {
+    color: oklch(var(--orchestrate-discard));
+  }
+  .bg-orchestrate-discard {
+    background-color: oklch(var(--orchestrate-discard));
+  }
+  .text-budget {
+    color: oklch(var(--budget));
+  }
+  .bg-budget {
+    background-color: oklch(var(--budget));
+  }
+  .glow-budget {
+    box-shadow: 0 0 0 1px oklch(var(--budget) / 0.35), 0 0 14px -2px
+      oklch(var(--budget) / 0.45);
   }
 }

@@ -37,6 +37,9 @@ it("carries the swarm population through the upgrade and initializes the new swa
   const agentsBefore = await previous.actor.listAgents();
   expect(agentsBefore.length).toBeGreaterThan(0);
   await previous.actor.advanceTick();
+  // Advancing the tick produces automatic peer-learning records, which the
+  // migration must preserve as part of "all existing state".
+  const learningBefore = await previous.actor.listLearningRecords();
 
   // 3. Upgrade to the version this build produces. The migration runs here.
   await pic.upgradeCanister({
@@ -57,8 +60,9 @@ it("carries the swarm population through the upgrade and initializes the new swa
   const stats = await upgraded.getSwarmStats();
   expect(stats.tick).toBeGreaterThan(0n);
 
-  // The new swarm-extension state is initialized empty rather than trapping.
-  expect(await upgraded.listLearningRecords()).toEqual([]);
+  // The migration preserves the swarm-extension state written before the
+  // upgrade rather than wiping it.
+  expect(await upgraded.listLearningRecords()).toEqual(learningBefore);
   expect(await upgraded.listTrades()).toEqual([]);
   expect(await upgraded.listNetworks()).toEqual([]);
   const treasury = await upgraded.getTreasury();
